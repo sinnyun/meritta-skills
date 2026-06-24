@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "scenario_id": "b1916e11-6ec4-4ad5-a468-8929c96a5089",
+  "name": "单独软件工具集",
+  "description": "单独软件工具技能",
+  "icon": "blocks",
+  "sort_order": 999
+}
