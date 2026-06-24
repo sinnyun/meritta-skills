@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "scenario_id": "7272a163-1edf-44fe-a892-3b2af52cf5ba",
+  "name": "agent-skills",
+  "description": "工作流集合",
+  "icon": "cpu",
+  "sort_order": 999
+}

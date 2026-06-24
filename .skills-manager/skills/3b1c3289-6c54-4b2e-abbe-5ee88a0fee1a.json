@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "3b1c3289-6c54-4b2e-abbe-5ee88a0fee1a",
+  "path": "shipping-and-launch",
+  "path_key": "shipping-and-launch",
+  "enabled": true,
+  "tags": [
+    "agent-skills"
+  ],
+  "source": {
+    "type": "skillssh",
+    "ref": "addyosmani/agent-skills/shipping-and-launch",
+    "subpath": "skills\\shipping-and-launch",
+    "branch": null
+  }
+}

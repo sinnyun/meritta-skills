@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "c9946db7-1f2c-48c9-8fd6-c4d520d6a54f",
+  "path": "documentation-and-adrs",
+  "path_key": "documentation-and-adrs",
+  "enabled": true,
+  "tags": [
+    "agent-skills"
+  ],
+  "source": {
+    "type": "skillssh",
+    "ref": "addyosmani/agent-skills/documentation-and-adrs",
+    "subpath": "skills\\documentation-and-adrs",
+    "branch": null
+  }
+}

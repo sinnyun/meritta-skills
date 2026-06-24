@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "7260c2af-b0e5-4a02-ae38-830c9f54ecc6",
+  "path": "security-and-hardening",
+  "path_key": "security-and-hardening",
+  "enabled": true,
+  "tags": [
+    "agent-skills"
+  ],
+  "source": {
+    "type": "skillssh",
+    "ref": "addyosmani/agent-skills/security-and-hardening",
+    "subpath": "skills\\security-and-hardening",
+    "branch": null
+  }
+}

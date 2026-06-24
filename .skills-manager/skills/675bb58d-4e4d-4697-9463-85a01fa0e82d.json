@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "675bb58d-4e4d-4697-9463-85a01fa0e82d",
+  "path": "using-agent-skills",
+  "path_key": "using-agent-skills",
+  "enabled": true,
+  "tags": [
+    "agent-skills"
+  ],
+  "source": {
+    "type": "skillssh",
+    "ref": "addyosmani/agent-skills/using-agent-skills",
+    "subpath": "skills\\using-agent-skills",
+    "branch": null
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "28035651-cc3b-4183-8fba-87528fdc827b",
+  "path": "context-engineering",
+  "path_key": "context-engineering",
+  "enabled": true,
+  "tags": [
+    "agent-skills"
+  ],
+  "source": {
+    "type": "skillssh",
+    "ref": "addyosmani/agent-skills/context-engineering",
+    "subpath": "skills\\context-engineering",
+    "branch": null
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "0c708f5b-28d9-4c59-9803-edc4e77c6152",
+  "path": "interview-me",
+  "path_key": "interview-me",
+  "enabled": true,
+  "tags": [
+    "agent-skills"
+  ],
+  "source": {
+    "type": "skillssh",
+    "ref": "addyosmani/agent-skills/interview-me",
+    "subpath": "skills\\interview-me",
+    "branch": null
+  }
+}

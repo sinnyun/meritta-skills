@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "4094e8ec-31ba-415c-acfb-db7eea1ef27f",
+  "path": "incremental-implementation",
+  "path_key": "incremental-implementation",
+  "enabled": true,
+  "tags": [
+    "agent-skills"
+  ],
+  "source": {
+    "type": "skillssh",
+    "ref": "addyosmani/agent-skills/incremental-implementation",
+    "subpath": "skills\\incremental-implementation",
+    "branch": null
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "fe76cebe-67ef-47c6-b6aa-661aa049dafa",
+  "path": "debugging-and-error-recovery",
+  "path_key": "debugging-and-error-recovery",
+  "enabled": true,
+  "tags": [
+    "agent-skills"
+  ],
+  "source": {
+    "type": "skillssh",
+    "ref": "addyosmani/agent-skills/debugging-and-error-recovery",
+    "subpath": "skills\\debugging-and-error-recovery",
+    "branch": null
+  }
+}

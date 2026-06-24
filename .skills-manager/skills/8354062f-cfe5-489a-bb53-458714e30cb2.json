@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "8354062f-cfe5-489a-bb53-458714e30cb2",
+  "path": "idea-refine",
+  "path_key": "idea-refine",
+  "enabled": true,
+  "tags": [
+    "agent-skills"
+  ],
+  "source": {
+    "type": "skillssh",
+    "ref": "addyosmani/agent-skills/idea-refine",
+    "subpath": "skills\\idea-refine",
+    "branch": null
+  }
+}
