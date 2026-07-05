@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "4f91d9e0-097b-400c-a2b6-b939be6927c1",
+  "path": "ztools-plugin-dev",
+  "path_key": "ztools-plugin-dev",
+  "enabled": true,
+  "tags": [
+    "个人"
+  ],
+  "source": {
+    "type": "local",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}
