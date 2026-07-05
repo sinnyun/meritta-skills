@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "b44fae58-e0b7-44cd-a2eb-fda4e2632010",
+  "path": "redesign-existing-projects",
+  "path_key": "redesign-existing-projects",
+  "enabled": true,
+  "tags": [
+    "设计"
+  ],
+  "source": {
+    "type": "skillssh",
+    "ref": "leonxlnx/taste-skill/redesign-existing-projects",
+    "subpath": "skills\\redesign-skill",
+    "branch": null
+  }
+}
