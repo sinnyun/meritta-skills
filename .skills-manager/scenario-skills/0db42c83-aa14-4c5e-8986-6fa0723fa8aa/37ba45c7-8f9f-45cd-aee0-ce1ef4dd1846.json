@@ -3,5 +3,11 @@
   "scenario_id": "0db42c83-aa14-4c5e-8986-6fa0723fa8aa",
   "skill_id": "37ba45c7-8f9f-45cd-aee0-ce1ef4dd1846",
   "sort_order": 21,
-  "tools": {}
+  "tools": {
+    "codearts_huawei": true,
+    "codex": true,
+    "deepseek_harness": true,
+    "qoder_cn": true,
+    "workbuddy": true
+  }
 }
