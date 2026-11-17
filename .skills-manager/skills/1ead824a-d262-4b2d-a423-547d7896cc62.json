@@ -4,7 +4,9 @@
   "path": "gpui-kit-design-guides",
   "path_key": "gpui-kit-design-guides",
   "enabled": true,
-  "tags": [],
+  "tags": [
+    "GPUI"
+  ],
   "source": {
     "type": "import",
     "ref": null,
