@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "scenario_id": "0db42c83-aa14-4c5e-8986-6fa0723fa8aa",
+  "skill_id": "7742c0b2-2ecc-4a77-84ca-34933098e806",
+  "sort_order": 34,
+  "tools": {
+    "claude_code": true,
+    "codearts_huawei": true,
+    "codex": true,
+    "deepseek_harness": true,
+    "qoder_cn": true,
+    "workbuddy": true
+  }
+}
