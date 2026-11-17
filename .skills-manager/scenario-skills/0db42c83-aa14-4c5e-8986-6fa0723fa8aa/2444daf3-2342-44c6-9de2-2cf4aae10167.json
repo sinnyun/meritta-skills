@@ -4,6 +4,7 @@
   "skill_id": "2444daf3-2342-44c6-9de2-2cf4aae10167",
   "sort_order": 22,
   "tools": {
+    "claude_code": true,
     "codearts_huawei": true,
     "codex": true,
     "deepseek_harness": true,
