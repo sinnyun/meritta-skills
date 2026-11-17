@@ -3,5 +3,12 @@
   "scenario_id": "0db42c83-aa14-4c5e-8986-6fa0723fa8aa",
   "skill_id": "3fca12cc-8151-4b2e-aedd-d3944427b90d",
   "sort_order": 2,
-  "tools": {}
+  "tools": {
+    "claude_code": true,
+    "codearts_huawei": true,
+    "codex": true,
+    "deepseek_harness": true,
+    "qoder_cn": true,
+    "workbuddy": true
+  }
 }
