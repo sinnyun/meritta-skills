@@ -1,0 +1,75 @@
+{
+  "_scenario": "开发者工作台（默认）",
+  "_desc": "Bug 修复·功能开发·Code Review 等开发场景",
+  "owner": "Dev Workbench",
+  "slogan": "Code · Learn · Ship",
+  "brand": "D",
+  "quotes": [
+    "新的一周，先把最难的 bug 挑出来啃。",
+    "代码能跑就先提交，完美是重构的事。",
+    "今天写的不只是功能，还有下次少踩的坑。",
+    "进度过半，别松劲，把测试补齐。",
+    "收尾发版，留半小时复盘这周的技术决策。",
+    "离屏幕远点，读一本不发光的书。",
+    "复盘 commit 记录，下周从最高价值的事开始。"
+  ],
+  "trend": {
+    "title": "本周专注度趋势",
+    "unit": "分",
+    "seed": [7, 6, 8, 5, 7, 8, 9]
+  },
+  "overviewLabels": {
+    "todo": "开发任务",
+    "checkin": "每日打卡",
+    "learn": "技术学习",
+    "note": "技术笔记"
+  },
+  "quickAddLabels": {
+    "todo": "记任务",
+    "checkin": "记打卡",
+    "learn": "记进度",
+    "note": "记笔记"
+  },
+  "modules": {
+    "todo": {
+      "name": "开发任务",
+      "desc": "Bug 修复·功能开发·Code Review",
+      "seed": [
+        { "title": "修复登录态偶发丢失的 bug", "priority": "P0", "done": false, "note": "复现条件：弱网下刷新 token 接口超时" },
+        { "title": "完成支付模块单元测试覆盖", "priority": "P1", "done": false, "note": "目标覆盖率 80%，重点测异常分支" },
+        { "title": "Review 团队 PR #142 并留意见", "priority": "P2", "done": true, "note": "" }
+      ]
+    },
+    "checkin": {
+      "name": "每日打卡",
+      "desc": "编码·算法·阅读等每日习惯",
+      "seed": [
+        { "title": "编码 2 小时", "logDays": [0, 1, 2, 3, 4, 5, 6] },
+        { "title": "算法 1 题", "logDays": [0, 1, 2, 4, 5, 6] },
+        { "title": "技术早读 30min", "logDays": [0, 1, 3, 5] },
+        { "title": "英语阅读 20min", "logDays": [0, 2, 4, 6] }
+      ]
+    },
+    "learn": {
+      "name": "技术学习",
+      "desc": "书籍·课程·源码阅读进度",
+      "unit": "节",
+      "seed": [
+        { "title": "《深入理解计算机系统》", "current": 9, "target": 12, "unit": "章", "note": "第 9 章 虚拟内存，配合 lab 实操" },
+        { "title": "Rust 所有权与借用", "current": 6, "target": 10, "unit": "节", "note": "Rustlings 练习，重点理解生命周期" },
+        { "title": "LeetCode 动态规划专题", "current": 14, "target": 30, "unit": "题", "note": "先刷一维 DP，再进二维" }
+      ]
+    },
+    "note": {
+      "name": "技术笔记",
+      "desc": "灵感·踩坑·方案·复盘",
+      "moods": ["灵感", "踩坑", "方案", "复盘"],
+      "seed": [
+        { "title": "微前端拆分方案初稿", "content": "qiankun + 路由劫持，主应用负责鉴权，子应用独立部署。下周拉会对齐。", "mood": "方案", "dateDaysAgo": 6 },
+        { "title": "内存泄漏排查记录", "content": "Chrome Memory 面板抓快照对比，detached DOM 节点未释放，根因是事件监听没解绑。", "mood": "踩坑", "dateDaysAgo": 4 },
+        { "title": "接口幂等性设计思考", "content": "支付类接口必须幂等，用 requestId + Redis SETNX 去重，超时重试不重复扣款。", "mood": "灵感", "dateDaysAgo": 2 },
+        { "title": "本周技术复盘", "content": "重构了订单状态机，用状态模式替换 if-else 链，可读性提升明显，但测试得补全。", "mood": "复盘", "dateDaysAgo": 0 }
+      ]
+    }
+  }
+}

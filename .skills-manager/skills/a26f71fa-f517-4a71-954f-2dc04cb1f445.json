@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "a26f71fa-f517-4a71-954f-2dc04cb1f445",
+  "path": "workbench-pro",
+  "path_key": "workbench-pro",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

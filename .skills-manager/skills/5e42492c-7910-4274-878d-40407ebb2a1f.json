@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "5e42492c-7910-4274-878d-40407ebb2a1f",
+  "path": "rust-pro",
+  "path_key": "rust-pro",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

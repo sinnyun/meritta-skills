@@ -1,0 +1,81 @@
+{
+  "title": "AI发展趋势报告",
+  "theme": "midnight-executive",
+  "lang": "zh",
+  "slides": [
+    {
+      "layout": "cover",
+      "data": {
+        "title": "AI发展趋势报告",
+        "subtitle": "2025-2026年行业深度洞察"
+      }
+    },
+    {
+      "layout": "content",
+      "data": {
+        "title": "全球AI市场规模",
+        "items": [
+          "2025年全球AI市场规模达4500亿美元",
+          "年复合增长率(CAGR)预计为20%",
+          "生成式AI市场增长最为迅猛",
+          "中国市场增速领先全球"
+        ]
+      }
+    },
+    {
+      "layout": "data",
+      "data": {
+        "title": "核心技术指标",
+        "metrics": [
+          {"label": "市场规模", "value": "4500亿"},
+          {"label": "年增长率", "value": "20%"},
+          {"label": "生成式AI占比", "value": "30%"}
+        ]
+      }
+    },
+    {
+      "layout": "split",
+      "data": {
+        "title": "技术演进路线",
+        "items": [
+          "大模型多模态发展",
+          "端侧AI加速普及",
+          "AI Agent成为新风口"
+        ]
+      }
+    },
+    {
+      "layout": "timeline",
+      "data": {
+        "title": "发展里程碑",
+        "steps": [
+          {"title": "2023", "desc": "大模型爆发"},
+          {"title": "2024", "desc": "应用落地"},
+          {"title": "2025", "desc": "生态成熟"},
+          {"title": "2026", "desc": "全面普及"}
+        ]
+      }
+    },
+    {
+      "layout": "comparison",
+      "data": {
+        "title": "方案对比",
+        "left": {
+          "title": "传统方案",
+          "items": ["成本高", "周期长", "扩展性差"]
+        },
+        "right": {
+          "title": "AI方案",
+          "items": ["成本低50%", "速度快3倍", "弹性扩展"]
+        }
+      }
+    },
+    {
+      "layout": "end",
+      "data": {
+        "title": "谢谢",
+        "subtitle": "Q&A"
+      }
+    }
+  ]
+}

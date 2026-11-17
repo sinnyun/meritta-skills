@@ -1,0 +1,151 @@
+/* 午夜商务 - 深蓝配色，适合商务汇报 */
+:root {
+  --primary: #1E2761;
+  --secondary: #CADCFC;
+  --accent: #FFFFFF;
+  --bg-light: #FFFFFF;
+  --bg-dark: #0D1117;
+  --text: #1E2761;
+  --text-light: #6B7280;
+
+  /* design-taste-frontend 原则 */
+  --design-variance: 8;
+  --motion-intensity: 6;
+  --visual-density: 4;
+}
+
+body {
+  font-family: 'Geist', 'Outfit', 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg-light);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+}
+
+.slide {
+  width: 1280px;
+  height: 720px;
+  padding: 80px;
+  background: var(--bg-light);
+  position: relative;
+  overflow: hidden;
+  display: none;
+}
+
+.slide.active {
+  display: block;
+}
+
+/* 封面页 - 非对称布局 */
+.slide-cover {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.slide-cover h1 {
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.slide-cover .subtitle {
+  font-size: 24px;
+  color: var(--text-light);
+  margin-top: 20px;
+}
+
+.slide-cover .visual {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border-radius: 20px;
+  height: 400px;
+}
+
+/* 内容页 - 左对齐布局 */
+.slide-content {
+  display: block;
+}
+
+.slide-content h2 {
+  font-size: 48px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 40px;
+  border-left: 6px solid var(--primary);
+  padding-left: 20px;
+}
+
+.slide-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.slide-content li {
+  font-size: 20px;
+  line-height: 1.8;
+  margin-bottom: 20px;
+  padding-left: 30px;
+  position: relative;
+}
+
+.slide-content li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 8px;
+  height: 8px;
+  background: var(--primary);
+  border-radius: 50%;
+}
+
+/* 数据页 - 网格布局 */
+.slide-data {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.slide-data .metric {
+  background: var(--bg-light);
+  border: 2px solid var(--secondary);
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+}
+
+.slide-data .metric-value {
+  font-size: 56px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+
+.slide-data .metric-label {
+  font-size: 18px;
+  color: var(--text-light);
+}
+
+/* 结尾页 */
+.slide-end {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.slide-end h2 {
+  font-size: 56px;
+  color: var(--primary);
+  margin-bottom: 20px;
+}
+
+.slide-end p {
+  font-size: 24px;
+  color: var(--text-light);
+}

@@ -1,0 +1,14 @@
+{
+  "id": "poster-generation",
+  "version": "1.0.0",
+  "i18n": {
+    "zh-CN": {
+      "name": "海报生成",
+      "description": "图片海报生成技能，支持从零创建各种图片海报，包含完整设计规范、模板系统和内容生成能力。触发词：生成海报、创建海报、海报生成、图片海报、广告海报、宣传海报、meta-skill-system"
+    },
+    "en-US": {
+      "name": "Poster Generation",
+      "description": "Image poster generation skill, supporting creating various image posters from scratch, with complete design specs, template system and content generation. Use when the user asks to create posters, ad posters, or promotional posters."
+    }
+  }
+}

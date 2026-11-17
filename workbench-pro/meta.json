@@ -1,0 +1,14 @@
+{
+  "id": "workbench-pro",
+  "version": "1.1.0",
+  "i18n": {
+    "zh-CN": {
+      "name": "工作台Pro",
+      "description": "个人数字工作台分层模板库。用于搭建单文件 HTML 工作台/dashboard（学习备考、职场效率、自媒体创作、育儿启蒙、记账理财、习惯打卡、健身减脂、阅读管理、求职进度、生活管理等场景）。固定设计系统 + 工程骨架，配自包含组件片段库按需拼装，业务内容现场生成；桌面优先响应式（PC 双列 + 移动单列自适应）；localStorage 存储、导出导入备份。"
+    },
+    "en-US": {
+      "name": "Workbench Pro",
+      "description": "Layered template library for single-file HTML workbench/dashboard. Fixed design system + engineering skeleton with self-contained component snippets for on-demand assembly. Desktop-first responsive (PC dual-column + mobile single-column adaptive). localStorage persistence with export/import backup."
+    }
+  }
+}

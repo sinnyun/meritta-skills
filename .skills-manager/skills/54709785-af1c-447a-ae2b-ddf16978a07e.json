@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "54709785-af1c-447a-ae2b-ddf16978a07e",
+  "path": "ArchitectProtocol",
+  "path_key": "architectprotocol",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

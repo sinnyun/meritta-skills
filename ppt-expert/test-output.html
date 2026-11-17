@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI发展趋势报告</title>
+  <style>
+    /* Auto-generated theme */
+    :root {
+      --primary: #1E2761;
+      --secondary: #CADCFC;
+      --accent: #FFFFFF;
+      --bg-light: #FFFFFF;
+      --text: #1E2761;
+      --text-light: #6B7280;
+    }
+    
+    body {
+      font-family: "Geist", "Outfit", "Satoshi", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-light);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+    }
+    
+    .slide {
+      width: 1280px;
+      height: 720px;
+      padding: 80px;
+      background: var(--bg-light);
+      position: relative;
+      overflow: hidden;
+      display: none;
+      box-sizing: border-box;
+    }
+    
+    .slide.active { display: block; }
+    
+    .slide h1 { font-size: 64px; font-weight: 700; color: var(--primary); line-height: 1.1; margin: 0; }
+    .slide h2 { font-size: 48px; font-weight: 600; color: var(--primary); margin-bottom: 40px; }
+    .slide h3 { font-size: 28px; font-weight: 600; color: var(--primary); }
+    .slide p, .slide li { font-size: 20px; line-height: 1.8; }
+    .slide .subtitle { font-size: 24px; color: var(--text-light); margin-top: 20px; }
+    
+    .slide-cover { display: grid; grid-template-columns: 2fr 1fr; gap: 60px; align-items: center; }
+    .slide-cover .visual { border-radius: 20px; height: 400px; }
+    
+    .slide-content ul { list-style: none; padding: 0; margin: 0; }
+    .slide-content li { margin-bottom: 20px; padding-left: 30px; position: relative; }
+    .slide-content li::before { content: ""; position: absolute; left: 0; top: 12px; width: 8px; height: 8px; background: var(--primary); border-radius: 50%; }
+    
+    .slide-data { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+    .slide-data .metric { border: 2px solid var(--secondary); border-radius: 16px; padding: 40px; text-align: center; }
+    .slide-data .metric-value { font-size: 56px; font-weight: 700; margin-bottom: 10px; }
+    .slide-data .metric-label { font-size: 18px; color: var(--text-light); }
+    
+    .slide-end { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+    
+  </style>
+  <style>
+    /* 编辑器样式内联 */
+    .controls { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-top: 1px solid #e5e7eb; padding: 12px 24px; display: flex; align-items: center; justify-content: center; gap: 16px; z-index: 1000; }
+    .control-btn { padding: 8px 20px; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; color: #374151; font-size: 14px; font-weight: 500; cursor: pointer; }
+    .control-btn:hover { background: #f3f4f6; }
+    .control-btn:active { transform: translateY(1px); }
+    .page-info { font-size: 14px; color: #6b7280; min-width: 60px; text-align: center; }
+    .edit-btn { background: #1E2761; color: #fff; border-color: #1E2761; }
+    .edit-btn:hover { opacity: 0.9; }
+    .edit-btn.active { background: #F96167; border-color: #F96167; }
+    .export-btn { background: #028090; color: #fff; border-color: #028090; }
+    .editor-toolbar { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border: 1px solid #e5e7eb; border-radius: 12px; padding: 10px 20px; display: none; align-items: center; gap: 20px; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .toolbar-group { display: flex; align-items: center; gap: 8px; }
+    .toolbar-group label { font-size: 12px; color: #6b7280; }
+    .toolbar-group select, .toolbar-group input[type="color"] { padding: 4px 8px; border: 1px solid #d1d5db; border-radius: 6px; }
+    .toolbar-btn { width: 32px; height: 32px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+    .toolbar-btn:hover { background: #f3f4f6; }
+    body.editing [contenteditable="true"] { outline: 2px dashed rgba(30,39,97,0.3); outline-offset: 4px; border-radius: 4px; cursor: text; }
+    body.editing [contenteditable="true"]:focus { outline: 2px solid #1E2761; }
+    .deck { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 40px; padding-bottom: 80px; }
+    .slide { animation: slideIn 0.3s ease; }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+  </style>
+</head>
+<body>
+  <div class="deck">
+    <section class="slide slide-cover">
+  <div>
+    <h1>AI发展趋势报告</h1>
+    <p class="subtitle">2025-2026年行业深度洞察</p>
+  </div>
+  <div class="visual" style="background: linear-gradient(135deg, #1E2761, #CADCFC);"></div>
+</section>
+
+    <section class="slide slide-content">
+  <h2>全球AI市场规模</h2>
+  <ul>
+    <li>2025年全球AI市场规模达4500亿美元</li>
+    <li>年复合增长率(CAGR)预计为20%</li>
+    <li>生成式AI市场增长最为迅猛</li>
+    <li>中国市场增速领先全球</li>
+  </ul>
+</section>
+
+    <section class="slide">
+  <h2 style="grid-column: 1 / -1; font-size: 48px; font-weight: 600; color: #1E2761; margin-bottom: 20px;">核心技术指标</h2>
+  <div class="slide-data" style="grid-column: 1 / -1;">
+  <div class="metric">
+    <div class="metric-value" style="color: #1E2761;">4500亿</div>
+    <div class="metric-label">市场规模</div>
+  </div>
+  <div class="metric">
+    <div class="metric-value" style="color: #1E2761;">20%</div>
+    <div class="metric-label">年增长率</div>
+  </div>
+  <div class="metric">
+    <div class="metric-value" style="color: #1E2761;">30%</div>
+    <div class="metric-label">生成式AI占比</div>
+  </div>
+  </div>
+</section>
+
+    <section class="slide" style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;">
+  <div>
+    <h2 style="font-size: 40px; font-weight: 600; color: #1E2761; margin-bottom: 30px;">技术演进路线</h2>
+    <ul style="list-style: none; padding: 0;">
+    <li>大模型多模态发展</li>
+    <li>端侧AI加速普及</li>
+    <li>AI Agent成为新风口</li>
+    </ul>
+  </div>
+  <div style="background: linear-gradient(135deg, #CADCFC, #1E276133); border-radius: 20px; height: 400px;"></div>
+</section>
+
+    <section class="slide">
+  <h2 style="font-size: 48px; font-weight: 600; color: #1E2761; margin-bottom: 50px; text-align: center;">发展里程碑</h2>
+  <div style="display: flex; gap: 20px;">
+  <div style="flex: 1; text-align: center; padding: 0 16px;">
+    <div style="width: 40px; height: 40px; border-radius: 50%; background: #1E2761; color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-weight: 600;">1</div>
+    <h3 style="font-size: 18px; color: #1E2761; margin-bottom: 8px;">2023</h3>
+    <p style="font-size: 14px; color: #6B7280;">大模型爆发</p>
+  </div>
+  <div style="flex: 1; text-align: center; padding: 0 16px;">
+    <div style="width: 40px; height: 40px; border-radius: 50%; background: #1E2761; color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-weight: 600;">2</div>
+    <h3 style="font-size: 18px; color: #1E2761; margin-bottom: 8px;">2024</h3>
+    <p style="font-size: 14px; color: #6B7280;">应用落地</p>
+  </div>
+  <div style="flex: 1; text-align: center; padding: 0 16px;">
+    <div style="width: 40px; height: 40px; border-radius: 50%; background: #1E2761; color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-weight: 600;">3</div>
+    <h3 style="font-size: 18px; color: #1E2761; margin-bottom: 8px;">2025</h3>
+    <p style="font-size: 14px; color: #6B7280;">生态成熟</p>
+  </div>
+  <div style="flex: 1; text-align: center; padding: 0 16px;">
+    <div style="width: 40px; height: 40px; border-radius: 50%; background: #1E2761; color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; font-weight: 600;">4</div>
+    <h3 style="font-size: 18px; color: #1E2761; margin-bottom: 8px;">2026</h3>
+    <p style="font-size: 14px; color: #6B7280;">全面普及</p>
+  </div>
+  </div>
+</section>
+
+    <section class="slide">
+  <h2 style="font-size: 48px; font-weight: 600; color: #1E2761; margin-bottom: 40px; text-align: center;">方案对比</h2>
+  <div style="display: flex; gap: 30px;">
+  <div style="flex: 1; padding: 30px; border-radius: 16px; background: #f9fafb;">
+    <h3 style="font-size: 24px; color: #1E2761; margin-bottom: 20px;">传统方案</h3>
+    <ul style="list-style: none; padding: 0;">
+      <li style="margin-bottom: 12px;">成本高</li>
+      <li style="margin-bottom: 12px;">周期长</li>
+      <li style="margin-bottom: 12px;">扩展性差</li>
+    </ul>
+  </div>
+  <div style="flex: 1; padding: 30px; border-radius: 16px; background: #f9fafb;">
+    <h3 style="font-size: 24px; color: #1E2761; margin-bottom: 20px;">AI方案</h3>
+    <ul style="list-style: none; padding: 0;">
+      <li style="margin-bottom: 12px;">成本低50%</li>
+      <li style="margin-bottom: 12px;">速度快3倍</li>
+      <li style="margin-bottom: 12px;">弹性扩展</li>
+    </ul>
+  </div>
+  </div>
+</section>
+
+    <section class="slide slide-end">
+  <h2>谢谢</h2>
+  <p>Q&amp;A</p>
+</section>
+  </div>
+
+  <div class="controls">
+    <button id="prev" class="control-btn">← 上一页</button>
+    <span id="page-info" class="page-info">1 / 7</span>
+    <button id="next" class="control-btn">下一页 →</button>
+    <button id="edit-mode" class="control-btn edit-btn">编辑模式</button>
+    <button id="export-pptx" class="control-btn export-btn">导出 PPTX</button>
+  </div>
+
+  <div class="editor-toolbar">
+    <div class="toolbar-group"><label>字号:</label><select id="font-size"><option value="h1">H1</option><option value="h2">H2</option><option value="h3">H3</option><option value="p" selected>正文</option></select></div>
+    <div class="toolbar-group"><label>颜色:</label><input type="color" id="text-color" value="#1E2761"></div>
+    <div class="toolbar-group"><button id="bold" class="toolbar-btn"><b>B</b></button><button id="italic" class="toolbar-btn"><i>I</i></button><button id="underline" class="toolbar-btn"><u>U</u></button></div>
+    <div class="toolbar-group"><button id="align-left" class="toolbar-btn">⬅</button><button id="align-center" class="toolbar-btn">⬆</button><button id="align-right" class="toolbar-btn">➡</button></div>
+  </div>
+
+  <script>
+(function(){
+  var currentSlide=0,editMode=false,slides=document.querySelectorAll(".slide"),total=slides.length;
+  if(total>0)slides[0].classList.add("active");
+  function updateInfo(){var e=document.getElementById("page-info");if(e)e.textContent=(currentSlide+1)+" / "+total;}
+  function go(i){if(i<0||i>=total)return;slides[currentSlide].classList.remove("active");currentSlide=i;slides[currentSlide].classList.add("active");updateInfo();}
+  var p=document.getElementById("prev"),n=document.getElementById("next");
+  if(p)p.onclick=function(){go(currentSlide-1);};
+  if(n)n.onclick=function(){go(currentSlide+1);};
+  document.addEventListener("keydown",function(e){
+    if(editMode&&e.target.getAttribute("contenteditable")==="true")return;
+    if(e.key==="ArrowLeft"||e.key==="ArrowUp"){e.preventDefault();go(currentSlide-1);}
+    else if(e.key==="ArrowRight"||e.key==="ArrowDown"||e.key===" "){e.preventDefault();go(currentSlide+1);}
+    else if(e.key==="Escape"&&editMode)toggle();
+  });
+  function toggle(){
+    editMode=!editMode;
+    var btn=document.getElementById("edit-mode"),tb=document.querySelector(".editor-toolbar");
+    if(editMode){
+      document.body.classList.add("editing");
+      if(btn){btn.classList.add("active");btn.textContent="预览模式";}
+      if(tb)tb.style.display="flex";
+      slides.forEach(function(s){s.querySelectorAll("h1,h2,h3,p,li,.metric-value,.metric-label,.subtitle").forEach(function(el){el.setAttribute("contenteditable","true");});});
+    }else{
+      document.body.classList.remove("editing");
+      if(btn){btn.classList.remove("active");btn.textContent="编辑模式";}
+      if(tb)tb.style.display="none";
+      slides.forEach(function(s){s.querySelectorAll("[contenteditable]").forEach(function(el){el.removeAttribute("contenteditable");});});
+    }
+  }
+  var eb=document.getElementById("edit-mode");if(eb)eb.onclick=toggle;
+  var fs=document.getElementById("font-size");
+  if(fs)fs.onchange=function(){var s=window.getSelection();if(!s.rangeCount)return;var el=s.anchorNode;while(el&&el.nodeType!==1)el=el.parentNode;if(!el||el.getAttribute("contenteditable")!=="true")return;var m={h1:"48px",h2:"36px",h3:"28px",p:"20px"};el.style.fontSize=m[this.value]||"20px";};
+  var tc=document.getElementById("text-color");
+  if(tc)tc.oninput=function(){var s=window.getSelection();if(!s.rangeCount)return;var el=s.anchorNode;while(el&&el.nodeType!==1)el=el.parentNode;if(el&&el.getAttribute("contenteditable")==="true")el.style.color=this.value;};
+  ["bold","italic","underline"].forEach(function(c){var b=document.getElementById(c);if(b)b.onclick=function(){document.execCommand(c);};});
+  ["align-left","align-center","align-right"].forEach(function(c,i){var b=document.getElementById(c);if(b)b.onclick=function(){document.execCommand(["justifyLeft","justifyCenter","justifyRight"][i]);};});
+  var xp=document.getElementById("export-pptx");
+  if(xp)xp.onclick=function(){
+    var ov=document.createElement("div");ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:2000;";
+    ov.innerHTML='<div style="background:#fff;border-radius:16px;padding:40px;text-align:center;"><h3 style="margin:0 0 12px;color:#1E2761;">正在导出 PPTX</h3><p style="color:#6b7280;">请在服务器上运行导出脚本...</p><p style="color:#6b7280;font-size:13px;">node scripts/html_to_pptx.js &lt;html文件&gt;</p></div>';
+    document.body.appendChild(ov);
+    setTimeout(function(){ov.remove();},4000);
+  };
+})();  </script>
+</body>
+</html>

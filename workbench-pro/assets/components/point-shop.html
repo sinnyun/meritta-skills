@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<!-- 组件预览页：积分商城 point-shop（复制区见两个标记行之间） -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>组件预览：积分商城</title>
+</head>
+<body style="background:#f5f6fa;margin:0;padding:24px;font-family:-apple-system,'PingFang SC',sans-serif">
+<!-- ⬇ 组件代码开始：整段复制到骨架的模块槽 -->
+<style>
+.ps-top{display:flex;align-items:center;gap:14px;margin-bottom:14px}
+.ps-coin{
+  width:52px;height:52px;border-radius:50%;background:var(--c-warn-soft,#fef4e6);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.ps-coin svg{width:26px;height:26px}
+.ps-num{font-size:26px;font-weight:700;color:var(--c-warn,#f59e0b);line-height:1.1}
+.ps-num small{font-size:12px;font-weight:400;color:var(--c-sub,#8a90a0)}
+.ps-adds{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+.ps-add{
+  min-height:44px;padding:0 12px;border:none;border-radius:9px;cursor:pointer;
+  background:var(--c-warn-soft,#fef4e6);color:var(--c-warn,#f59e0b);font-size:13px;font-weight:600;
+}
+.ps-sec-title{font-size:12px;color:var(--c-sub,#8a90a0);margin:12px 0 8px}
+.ps-shop{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ps-goods{
+  border:1px solid var(--c-line,#eceef3);border-radius:12px;padding:10px 12px;
+  display:flex;flex-direction:column;gap:2px;
+}
+.ps-goods .g-name{font-size:14px;font-weight:600}
+.ps-goods .g-cost{font-size:12px;color:var(--c-warn,#f59e0b);font-weight:600}
+.ps-goods button{
+  margin-top:8px;min-height:44px;border:none;border-radius:9px;cursor:pointer;
+  background:var(--c-primary,#4f6ef7);color:#fff;font-size:13px;
+}
+.ps-goods button:disabled{background:var(--c-line,#eceef3);color:var(--c-sub,#8a90a0);cursor:not-allowed}
+.ps-hist{margin-top:6px;font-size:12px;color:var(--c-sub,#8a90a0);display:flex;flex-direction:column;gap:5px}
+.ps-hist .h-row{display:flex;gap:8px}
+.ps-hist .h-plus{color:var(--c-ok,#18a058)} .ps-hist .h-minus{color:var(--c-danger,#e5484d)}
+.ps-hist .h-time{margin-left:auto;flex-shrink:0}
+</style>
+<section class="card" style="background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(31,36,48,.06);padding:16px">
+  <div class="ps-top">
+    <div class="ps-coin">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><circle cx="12" cy="12" r="6.5" fill="#ffd28a"/></svg>
+    </div>
+    <div class="ps-num" id="ps-points">0<small> 积分</small></div>
+    <div class="ps-adds" id="ps-adds"></div>
+  </div>
+  <div class="ps-sec-title">奖励兑换</div>
+  <div class="ps-shop" id="ps-shop"></div>
+  <div class="ps-sec-title">最近记录</div>
+  <div class="ps-hist" id="ps-hist"></div>
+</section>
+<script>
+/* 积分商城：PointShop.render(el, appId)
+   状态 = {points, history:[{type:'add'|'use'|'confirm', n, name, time}], rewards:[{name,cost}]}
+   存储 key = wb_{appId}_points；兑换→待确认（家长/管理员在家长模式确认发放） */
+const PointShop = {
+  state: null, appId: 'demo',
+  seed(){
+    return {
+      points: 25,
+      rewards: [
+        {name:'动画片 20 分钟', cost:10},
+        {name:'冰淇淋一支', cost:20},
+        {name:'周末去公园', cost:50},
+        {name:'新绘本一本', cost:80},
+      ],
+      history: [
+        {type:'add', n:10, name:'完成每日识字', time:'09-10'},
+        {type:'add', n:15, name:'连续打卡 3 天', time:'09-10'},
+        {type:'use', n:-20, name:'冰淇淋一支', time:'09-11'},
+      ],
+    };
+  },
+  load(appId){
+    this.appId = appId || this.appId;
+    try{ this.state = JSON.parse(localStorage.getItem('wb_'+this.appId+'_points')) || this.seed(); }
+    catch(e){ this.state = this.seed(); }
+    // 向后兼容
+    this.state.points = Number(this.state.points) || 0;
+    this.state.rewards = Array.isArray(this.state.rewards) ? this.state.rewards : [];
+    this.state.history = Array.isArray(this.state.history) ? this.state.history : [];
+  },
+  save(){ try{ localStorage.setItem('wb_'+this.appId+'_points', JSON.stringify(this.state)); }catch(e){} },
+  render(el){
+    const s = this.state;
+    el.querySelector('#ps-points').innerHTML = s.points + '<small> 积分</small>';
+    el.querySelector('#ps-adds').innerHTML = [5,10,20].map(n =>
+      '<button class="ps-add" data-add="'+n+'">+' + n + '</button>').join('');
+    el.querySelector('#ps-shop').innerHTML = s.rewards.map((r,i) =>
+      '<div class="ps-goods"><span class="g-name">' + r.name.replace(/</g,'&lt;') + '</span>' +
+      '<span class="g-cost">' + r.cost + ' 积分</span>' +
+      '<button data-buy="' + i + '"' + (s.points < r.cost ? ' disabled' : '') + '>兑换</button></div>').join('');
+    el.querySelector('#ps-hist').innerHTML = s.history.slice(0,4).map(h =>
+      '<div class="h-row"><span class="' + (h.n>=0?'h-plus">＋':'h-minus">－') + Math.abs(h.n) +
+      '</span><span>' + h.name.replace(/</g,'&lt;') + '</span><span class="h-time">' + h.time + '</span></div>').join('')
+      || '<div class="h-row">暂无记录</div>';
+  },
+  bind(el){
+    el.addEventListener('click', e => {
+      const add = e.target.closest('[data-add]');
+      const buy = e.target.closest('[data-buy]');
+      if(add){
+        const n = Number(add.dataset.add);
+        this.state.points += n;
+        this.state.history.unshift({type:'add', n, name:'手动加分', time:this.today()});
+      }else if(buy){
+        const r = this.state.rewards[Number(buy.dataset.buy)];
+        if(!r || this.state.points < r.cost) return;
+        if(!confirm('用 ' + r.cost + ' 积分兑换「' + r.name + '」吗？')) return;
+        this.state.points -= r.cost;
+        this.state.history.unshift({type:'use', n:-r.cost, name:r.name, time:this.today()});
+      }else return;
+      this.save();
+      this.render(el);   // 自渲染，不联动其他模块
+    });
+  },
+  today(){
+    const d = new Date();
+    return String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+};
+</script>
+<!-- ⬆ 组件代码结束 -->
+
+<script>
+/* 预览演示 */
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.querySelector('section.card');
+  PointShop.load('demo');
+  PointShop.render(el);
+  PointShop.bind(el);
+});
+</script>
+</body>
+</html>

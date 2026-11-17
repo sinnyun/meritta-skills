@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "6d21a8f7-cb65-470e-a951-45af64f5fbc3",
+  "path": "skill-authoring",
+  "path_key": "skill-authoring",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "ecb59f9b-8620-4b45-af4e-b443c7b89f43",
+  "path": "connector-diagnose",
+  "path_key": "connector-diagnose",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

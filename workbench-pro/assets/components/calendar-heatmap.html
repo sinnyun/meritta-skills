@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<!-- 组件预览页：日历热力图 calendar-heatmap（复制区见两个标记行之间） -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>组件预览：日历热力图</title>
+</head>
+<body style="background:#f5f6fa;margin:0;padding:24px;font-family:-apple-system,'PingFang SC',sans-serif">
+<!-- ⬇ 组件代码开始：整段复制到骨架的模块槽 -->
+<style>
+.hm-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.hm-month{font-size:15px;font-weight:600}
+.hm-nav{display:flex;gap:8px}
+.hm-nav button{
+  min-width:44px;min-height:36px;border:1px solid var(--c-line,#eceef3);border-radius:8px;
+  background:#fff;color:var(--c-sub,#8a90a0);cursor:pointer;font-size:14px;
+}
+.hm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.hm-cell{
+  aspect-ratio:1;min-height:42px;border-radius:7px;background:var(--c-bg,#f5f6fa);
+  display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--c-sub,#8a90a0);
+}
+.hm-cell.dim{opacity:.3}                     /* 非本月 */
+.hm-cell.future{opacity:.35}                /* 未来日期 */
+.hm-cell.today{outline:2px solid var(--c-primary,#4f6ef7);outline-offset:1px}
+.hm-cell[data-v="1"]{background:#dce4fd;color:#5a6bbf}
+.hm-cell[data-v="2"]{background:#aebdfb;color:#3c4fa8}
+.hm-cell[data-v="3"]{background:#7f95f9;color:#fff}
+.hm-cell[data-v="4"]{background:var(--c-primary,#4f6ef7);color:#fff;font-weight:600}
+.hm-legend{display:flex;align-items:center;gap:4px;justify-content:flex-end;margin-top:10px;font-size:10px;color:var(--c-sub,#8a90a0)}
+.hm-legend i{width:10px;height:10px;border-radius:3px;display:inline-block;background:var(--c-bg,#f5f6fa)}
+.hm-legend i[data-v="1"]{background:#dce4fd}.hm-legend i[data-v="2"]{background:#aebdfb}
+.hm-legend i[data-v="3"]{background:#7f95f9}.hm-legend i[data-v="4"]{background:var(--c-primary,#4f6ef7)}
+</style>
+<section class="card" style="background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(31,36,48,.06);padding:16px">
+  <div class="hm-head">
+    <span class="hm-month" id="hm-month">—</span>
+    <div class="hm-nav">
+      <button id="hm-prev" aria-label="上一月">‹</button>
+      <button id="hm-next" aria-label="下一月">›</button>
+    </div>
+  </div>
+  <div class="hm-grid" id="hm-grid"></div>
+  <div class="hm-legend">少 <i></i><i data-v="1"></i><i data-v="2"></i><i data-v="3"></i><i data-v="4"></i> 多</div>
+</section>
+<script>
+/* 日历热力图：Heatmap.render(el, values, monthStr)
+   values = {"YYYY-MM-DD": 0-4}，monthStr = "YYYY-MM"（缺省当月），内部自管切月状态 */
+const Heatmap = {
+  month: null, values: {},
+  render(el, values, monthStr){
+    this.values = values || {};
+    this.month = monthStr || this.month || this.todayStr().slice(0,7);
+    const [y, m] = this.month.split('-').map(Number);
+    const label = document.getElementById('hm-month'); if(label) label.textContent = y + ' 年 ' + m + ' 月';
+    const first = new Date(y, m-1, 1);
+    const daysInMonth = new Date(y, m, 0).getDate();
+    const startWd = first.getDay();
+    const today = this.todayStr();
+    let html = '';
+    for(let i=0;i<startWd;i++) html += '<div class="hm-cell dim"></div>';
+    for(let d=1; d<=daysInMonth; d++){
+      const key = y + '-' + String(m).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+      const v = Math.max(0, Math.min(4, Number(this.values[key]) || 0));
+      const cls = (key === today ? ' today' : '') + (key > today ? ' future' : '');
+      html += '<div class="hm-cell' + cls + '" data-v="' + v + '" title="' + key + '">' + d + '</div>';
+    }
+    el.innerHTML = html;
+  },
+  shift(el, n){
+    const [y, m] = this.month.split('-').map(Number);
+    const d = new Date(y, m-1+n, 1);
+    this.render(el, this.values, d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));
+  },
+  todayStr(){
+    const d = new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+};
+</script>
+<!-- ⬆ 组件代码结束 -->
+
+<script>
+/* 预览演示：随机生成近两个月数据 */
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('hm-grid');
+  const values = {};
+  const now = new Date();
+  [0,1].forEach(off => {
+    const d = new Date(now.getFullYear(), now.getMonth()-off, 1);
+    const ym = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    for(let i=1;i<=28;i++){
+      if(Math.random() > .45) values[ym+'-'+String(i).padStart(2,'0')] = Math.ceil(Math.random()*4);
+    }
+  });
+  Heatmap.render(el, values);
+  document.getElementById('hm-prev').onclick = () => Heatmap.shift(el, -1);
+  document.getElementById('hm-next').onclick = () => Heatmap.shift(el, 1);
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "id": "ppt-expert",
+  "version": "1.0.0",
+  "i18n": {
+    "zh-CN": {
+      "name": "演示文稿生成专家",
+      "description": "智能 PPT 生成助手。根据用户描述的主题、行业、风格，自动生成漂亮的 PPT 文件。支持所有行业（商务、教育、科技、医疗、金融、创意等），支持中英文双语，支持用户提供的模板或 AI 自动配色。触发词：做PPT、生成PPT、制作幻灯片、make ppt、create presentation、帮我做个PPT。"
+    },
+    "en-US": {
+      "name": "PPT Expert",
+      "description": "Intelligent PPT generation assistant. Generates professional presentations based on user-described topic, industry, and style. Supports all industry scenarios, HTML preview with editing and direct PPTX generation, 20+ built-in visual styles, bilingual support."
+    }
+  }
+}

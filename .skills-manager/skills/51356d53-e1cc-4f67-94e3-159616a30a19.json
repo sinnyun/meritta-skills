@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "51356d53-e1cc-4f67-94e3-159616a30a19",
+  "path": "poster-generation",
+  "path_key": "poster-generation",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "771913eb-0870-40ba-b2bc-7d29b764d9a4",
+  "path": "create-plan",
+  "path_key": "create-plan",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!-- 组件预览页：趋势折线图 trend-chart（复制区见两个标记行之间） -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>组件预览：趋势折线图</title>
+</head>
+<body style="background:#f5f6fa;margin:0;padding:24px;font-family:-apple-system,'PingFang SC',sans-serif">
+<!-- ⬇ 组件代码开始：整段复制到骨架的模块槽 -->
+<style>
+.tc-box{position:relative}
+.tc-box svg{display:block;width:100%;height:auto}
+.tc-tip{
+  position:absolute;pointer-events:none;display:none;background:var(--c-text,#1f2430);color:#fff;
+  font-size:11px;padding:4px 8px;border-radius:6px;white-space:nowrap;transform:translate(-50%,-130%);z-index:2;
+}
+.tc-empty{padding:26px 0;text-align:center;color:var(--c-sub,#8a90a0);font-size:13px}
+.tc-arrow{font-size:12px;margin-top:6px;font-weight:600}
+</style>
+<section class="card" style="background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(31,36,48,.06);padding:16px">
+  <div class="tc-box" id="tc-box">
+    <svg id="tc-svg" viewBox="0 0 480 190" preserveAspectRatio="none"></svg>
+    <div class="tc-tip" id="tc-tip"></div>
+  </div>
+  <div class="tc-arrow" id="tc-arrow"></div>
+</section>
+<script>
+/* 趋势折线图：TrendChart.render(el, points, opts)
+   points = [{x:'9/1', y:62.5}]；opts = {unit:'kg', downIsGood:false} */
+const TrendChart = {
+  W:480, H:190, PAD:{l:44,r:12,t:14,b:26},
+  render(el, points, opts){
+    opts = opts || {};
+    const svg = el.querySelector('svg') || el;
+    const arrow = document.getElementById('tc-arrow');
+    points = (points || []).filter(p => isFinite(p.y));
+    if(points.length < 2){
+      svg.innerHTML = '';
+      if(arrow) arrow.textContent = '';
+      const box = el.querySelector('.tc-box');
+      if(box && !box.querySelector('.tc-empty')) box.insertAdjacentHTML('beforeend','<div class="tc-empty">数据不足，记录两次后展示趋势</div>');
+      return;
+    }
+    const empty = el.querySelector('.tc-empty'); if(empty) empty.remove();
+    const P = this.PAD;
+    const ys = points.map(p => p.y);
+    let min = Math.min(...ys), max = Math.max(...ys);
+    if(min === max){ min -= 1; max += 1; }
+    const span = max - min; min -= span*.15; max += span*.15;
+    const X = i => P.l + (this.W - P.l - P.r) * (i/(points.length-1));
+    const Y = v => P.t + (this.H - P.t - P.b) * (1 - (v-min)/(max-min));
+
+    let g = '';
+    // 网格线 + 纵轴刻度（4 档）
+    for(let i=0;i<=4;i++){
+      const v = min + (max-min)*i/4;
+      const y = Y(v);
+      g += '<line x1="'+P.l+'" y1="'+y+'" x2="'+(this.W-P.r)+'" y2="'+y+'" stroke="var(--c-line,#eceef3)" stroke-width="1"/>' +
+           '<text x="'+(P.l-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="var(--c-sub,#8a90a0)">' +
+           (Math.round(v*10)/10) + (opts.unit ? '' : '') + '</text>';
+    }
+    // 面积 + 折线
+    const line = points.map((p,i) => (i?'L':'M') + X(i).toFixed(1) + ' ' + Y(p.y).toFixed(1)).join(' ');
+    const area = line + ' L' + X(points.length-1).toFixed(1) + ' ' + (this.H-P.b) + ' L' + P.l + ' ' + (this.H-P.b) + ' Z';
+    g += '<path d="'+area+'" fill="var(--c-primary,#4f6ef7)" opacity=".08"/>';
+    g += '<path d="'+line+'" fill="none" stroke="var(--c-primary,#4f6ef7)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    // 数据点
+    points.forEach((p,i) => {
+      g += '<circle class="tc-dot" data-i="'+i+'" cx="'+X(i).toFixed(1)+'" cy="'+Y(p.y).toFixed(1)+'" r="4.5" fill="#fff" stroke="var(--c-primary,#4f6ef7)" stroke-width="2.5" style="cursor:pointer"/>';
+    });
+    // 横轴标签（最多 6 个，均匀抽稀）
+    const step = Math.ceil(points.length/6);
+    points.forEach((p,i) => {
+      if(i % step === 0 || i === points.length-1)
+        g += '<text x="'+X(i).toFixed(1)+'" y="'+(this.H-8)+'" text-anchor="middle" font-size="10" fill="var(--c-sub,#8a90a0)">'+String(p.x).replace(/</g,'&lt;')+'</text>';
+    });
+    svg.innerHTML = g;
+
+    // 趋势箭头文案（downIsGood 时下降显示绿色向好）
+    if(arrow){
+      const diff = points[points.length-1].y - points[0].y;
+      const up = diff > 0;
+      const good = opts.downIsGood ? !up : up;
+      const color = Math.abs(diff) < 1e-9 ? 'var(--c-sub,#8a90a0)' : (good ? 'var(--c-ok,#18a058)' : 'var(--c-danger,#e5484d)');
+      const sym = Math.abs(diff) < 1e-9 ? '—' : (up ? '↑' : '↓');
+      arrow.style.color = color;
+      arrow.textContent = sym + ' ' + (Math.abs(diff*10)/10).toFixed(1).replace(/\.0$/,'') + (opts.unit||'');
+    }
+
+    // 悬停/点击数值气泡（事件委托，绑一次）
+    if(!el.dataset.bound){
+      el.dataset.bound = '1';
+      const tip = el.querySelector('.tc-tip');
+      const show = e => {
+        const dot = e.target.closest('.tc-dot');
+        if(!dot){ tip.style.display='none'; return; }
+        const p = points[Number(dot.dataset.i)];
+        tip.textContent = p.x + ' · ' + p.y + (opts.unit||'');
+        tip.style.display = 'block';
+        const box = el.querySelector('.tc-box').getBoundingClientRect();
+        const r = dot.getBoundingClientRect();
+        tip.style.left = (r.left - box.left + r.width/2) + 'px';
+        tip.style.top = (r.top - box.top) + 'px';
+      };
+      el.addEventListener('mousemove', show);
+      el.addEventListener('click', show);
+      el.addEventListener('mouseleave', () => { tip.style.display='none'; });
+    }
+  }
+};
+</script>
+<!-- ⬆ 组件代码结束 -->
+
+<script>
+/* 预览演示 */
+document.addEventListener('DOMContentLoaded', () => {
+  TrendChart.render(document.getElementById('tc-box'), [
+    {x:'9/1',y:63.2},{x:'9/3',y:62.8},{x:'9/5',y:63.0},{x:'9/7',y:62.1},
+    {x:'9/9',y:61.7},{x:'9/11',y:61.4}
+  ], {unit:'kg', downIsGood:true});
+});
+</script>
+</body>
+</html>

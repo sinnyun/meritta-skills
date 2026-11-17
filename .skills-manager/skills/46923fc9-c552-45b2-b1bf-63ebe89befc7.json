@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "46923fc9-c552-45b2-b1bf-63ebe89befc7",
+  "path": "e2e-playwright-testing",
+  "path_key": "e2e-playwright-testing",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

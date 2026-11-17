@@ -1,0 +1,223 @@
+/* 编辑器样式 - design-taste-frontend 原则 */
+
+/* 控制栏 */
+.controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid #e5e7eb;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 1000;
+}
+
+.control-btn {
+  padding: 8px 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Geist', 'Outfit', sans-serif;
+}
+
+.control-btn:hover {
+  background: #f3f4f6;
+}
+
+.control-btn:active {
+  transform: translateY(1px);
+}
+
+.page-info {
+  font-size: 14px;
+  color: #6b7280;
+  min-width: 60px;
+  text-align: center;
+}
+
+.edit-btn {
+  background: #1E2761;
+  color: #fff;
+  border-color: #1E2761;
+}
+
+.edit-btn:hover {
+  background: #2a3580;
+}
+
+.edit-btn.active {
+  background: #F96167;
+  border-color: #F96167;
+}
+
+.export-btn {
+  background: #028090;
+  color: #fff;
+  border-color: #028090;
+}
+
+.export-btn:hover {
+  background: #036670;
+}
+
+/* 编辑工具栏 */
+.editor-toolbar {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-group label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.toolbar-group select {
+  padding: 4px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+}
+
+.toolbar-group input[type="color"] {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.toolbar-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toolbar-btn:hover {
+  background: #f3f4f6;
+}
+
+.toolbar-btn:active {
+  transform: scale(0.98);
+}
+
+/* 编辑模式下的可编辑区域 */
+body.editing .slide [contenteditable="true"] {
+  outline: 2px dashed rgba(30, 39, 97, 0.3);
+  outline-offset: 4px;
+  border-radius: 4px;
+  cursor: text;
+}
+
+body.editing .slide [contenteditable="true"]:focus {
+  outline: 2px solid #1E2761;
+  background: rgba(30, 39, 97, 0.02);
+}
+
+/* 幻灯片居中展示 */
+.deck {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 40px;
+  padding-bottom: 80px;
+}
+
+/* 导航过渡动效 */
+.slide {
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 导出提示 */
+.export-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.export-dialog {
+  background: #fff;
+  border-radius: 16px;
+  padding: 40px;
+  text-align: center;
+  max-width: 400px;
+}
+
+.export-dialog h3 {
+  font-size: 20px;
+  color: #1E2761;
+  margin-bottom: 12px;
+}
+
+.export-dialog p {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #028090;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}

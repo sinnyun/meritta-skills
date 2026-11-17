@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<!-- 组件预览页：分类占比环图 pie-chart（复制区见两个标记行之间） -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>组件预览：分类占比环图</title>
+</head>
+<body style="background:#f5f6fa;margin:0;padding:24px;font-family:-apple-system,'PingFang SC',sans-serif">
+<!-- ⬇ 组件代码开始：整段复制到骨架的模块槽 -->
+<style>
+.pc-wrap{display:flex;align-items:center;gap:16px}
+.pc-svg{flex-shrink:0}
+.pc-svg path{transition:opacity .15s;cursor:pointer}
+.pc-legend{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.pc-li{display:flex;align-items:center;gap:8px;font-size:13px}
+.pc-li i{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.pc-li .pc-name{color:var(--c-text,#1f2430);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pc-li .pc-val{margin-left:auto;color:var(--c-sub,#8a90a0);flex-shrink:0}
+.pc-center{font-size:11px;fill:var(--c-sub,#8a90a0)}
+.pc-center-v{font-size:17px;font-weight:700;fill:var(--c-text,#1f2430)}
+.pc-empty{padding:22px 0;text-align:center;color:var(--c-sub,#8a90a0);font-size:13px}
+</style>
+<section class="card" style="background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(31,36,48,.06);padding:16px">
+  <div id="pc-root"></div>
+</section>
+<script>
+/* 占比环图：PieChart.render(el, items)
+   items = [{label:'餐饮', value:820, color:'#f59e0b'}]，color 缺省自动配色 */
+const PieChart = {
+  PALETTE:['#4f6ef7','#f59e0b','#18a058','#e5484d','#9a5cf5','#14b8c4','#f272a7'],
+  render(el, items, centerLabel){
+    items = (items || []).filter(x => Number(x.value) > 0);
+    if(!items.length){
+      el.innerHTML = '<div class="pc-empty">暂无数据，记一笔后查看占比</div>';
+      return;
+    }
+    const total = items.reduce((s,x) => s + Number(x.value), 0);
+    const R = 62, CX = 80, CY = 80, SW = 20;
+    let angle = -90, paths = '';
+    items.forEach((it, i) => {
+      const frac = it.value/total;
+      const a2 = angle + frac*360;
+      const c = it.color || this.PALETTE[i % this.PALETTE.length];
+      if(frac >= 0.9999){
+        paths += '<circle cx="'+CX+'" cy="'+CY+'" r="'+R+'" fill="none" stroke="'+c+'" stroke-width="'+SW+'"/>';
+      }else{
+        const large = frac > .5 ? 1 : 0;
+        const p1 = this.pt(CX,CY,R,angle), p2 = this.pt(CX,CY,R,a2);
+        paths += '<path d="M'+p1.x+' '+p1.y+' A'+R+' '+R+' 0 '+large+' 1 '+p2.x+' '+p2.y+'" fill="none" stroke="'+c+'" stroke-width="'+SW+'" stroke-linecap="butt"/>';
+      }
+      angle = a2;
+    });
+    const legend = items.map((it,i) => {
+      const c = it.color || this.PALETTE[i % this.PALETTE.length];
+      return '<div class="pc-li"><i style="background:'+c+'"></i>' +
+        '<span class="pc-name">'+String(it.label).replace(/</g,'&lt;')+'</span>' +
+        '<span class="pc-val">'+it.value+' · '+Math.round(it.value/total*100)+'%</span></div>';
+    }).join('');
+    el.innerHTML =
+      '<div class="pc-wrap"><svg class="pc-svg" width="160" height="160" viewBox="0 0 160 160">' + paths +
+      '<text class="pc-center-v" x="80" y="78" text-anchor="middle">'+total+'</text>' +
+      '<text class="pc-center" x="80" y="96" text-anchor="middle">'+String(centerLabel||'合计').replace(/</g,'&lt;')+'</text>' +
+      '</svg><div class="pc-legend">'+legend+'</div></div>';
+  },
+  pt(cx,cy,r,deg){
+    const a = deg*Math.PI/180;
+    return {x:(cx+r*Math.cos(a)).toFixed(2), y:(cy+r*Math.sin(a)).toFixed(2)};
+  }
+};
+</script>
+<!-- ⬆ 组件代码结束 -->
+
+<script>
+/* 预览演示 */
+document.addEventListener('DOMContentLoaded', () => {
+  PieChart.render(document.getElementById('pc-root'), [
+    {label:'餐饮', value:1280},
+    {label:'交通', value:420},
+    {label:'日用', value:660},
+    {label:'娱乐', value:300},
+    {label:'其他', value:150},
+  ], '9月支出');
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "afb04992-79d1-4940-9cad-5072bfac96ea",
+  "path": "architecting",
+  "path_key": "architecting",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "06a70318-8754-4cd2-aa6e-8799de9eeb1e",
+  "path": "game-maker",
+  "path_key": "game-maker",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

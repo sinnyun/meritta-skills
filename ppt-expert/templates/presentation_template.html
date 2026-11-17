@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}}</title>
+  <link rel="stylesheet" href="themes/{{THEME}}.css">
+  <link rel="stylesheet" href="../public/editor.css">
+</head>
+<body>
+  <div class="deck">
+    {{SLIDES}}
+  </div>
+
+  <!-- 控制栏 -->
+  <div class="controls">
+    <button id="prev" class="control-btn">← 上一页</button>
+    <span id="page-info" class="page-info">1 / 10</span>
+    <button id="next" class="control-btn">下一页 →</button>
+    <button id="edit-mode" class="control-btn edit-btn">编辑模式</button>
+    <button id="export-pptx" class="control-btn export-btn">导出 PPTX</button>
+  </div>
+
+  <!-- 编辑工具栏 -->
+  <div class="editor-toolbar" style="display: none;">
+    <div class="toolbar-group">
+      <label>字体大小:</label>
+      <select id="font-size">
+        <option value="h1">标题 (H1)</option>
+        <option value="h2">副标题 (H2)</option>
+        <option value="h3">小标题 (H3)</option>
+        <option value="p" selected>正文</option>
+      </select>
+    </div>
+    <div class="toolbar-group">
+      <label>颜色:</label>
+      <input type="color" id="text-color" value="#1E2761">
+    </div>
+    <div class="toolbar-group">
+      <button id="bold" class="toolbar-btn">B</button>
+      <button id="italic" class="toolbar-btn">I</button>
+      <button id="underline" class="toolbar-btn">U</button>
+    </div>
+    <div class="toolbar-group">
+      <button id="align-left" class="toolbar-btn">⬅</button>
+      <button id="align-center" class="toolbar-btn">⬆</button>
+      <button id="align-right" class="toolbar-btn">➡</button>
+    </div>
+  </div>
+
+  <script src="../public/editor.js"></script>
+</body>
+</html>

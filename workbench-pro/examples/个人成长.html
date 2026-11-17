@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>远行 · 个人成长与目标管理工作台</title>
+<style>
+:root{
+  --moss:#466B52;--moss-deep:#2F4A39;--moss-soft:#C8D5BB;--moss-tint:#E8EFE3;
+  --paper:#F5EFE2;--paper-deep:#E8DEC9;--ink:#2C2620;--ink-soft:#5A4F44;--ink-faint:#9C8E7E;
+  --amber:#D88C4A;--amber-soft:#F2D9BC;--ember:#B8503C;--sky:#7B96A8;
+  --line:rgba(70,107,82,.18);--line-soft:rgba(70,107,82,.10);
+  --shadow:0 1px 2px rgba(44,38,32,.06),0 8px 24px rgba(44,38,32,.08);
+  --shadow-lift:0 2px 4px rgba(44,38,32,.08),0 18px 48px rgba(44,38,32,.14);
+  --r-sm:8px;--r-md:14px;--r-lg:20px;--r-xl:28px;
+  --font-zh:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  --font-num:"SF Pro Display","Helvetica Neue","Inter",-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font-zh);background:var(--paper);color:var(--ink);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;background-image:radial-gradient(1200px 600px at 10% -10%,rgba(70,107,82,.05),transparent 60%),radial-gradient(800px 400px at 110% 110%,rgba(216,140,74,.05),transparent 60%)}
+button,input,textarea,select{font-family:inherit;font-size:inherit;color:inherit}
+button{background:none;border:none;cursor:pointer}
+a{color:inherit;text-decoration:none}
+ul,ol{list-style:none}
+.app{display:grid;grid-template-columns:228px 1fr;min-height:100vh}
+.sidebar{background:linear-gradient(180deg,var(--moss-deep),var(--moss) 60%,#3A5847);color:#E8EFE3;padding:24px 18px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:8px}
+.brand{display:flex;align-items:center;gap:12px;padding:6px 8px 22px;border-bottom:1px solid rgba(232,239,227,.12);margin-bottom:14px}
+.brand-logo{width:42px;height:42px;flex-shrink:0}
+.brand-name{font-size:20px;font-weight:700;letter-spacing:2px}
+.brand-tag{font-size:11px;opacity:.7;letter-spacing:1px}
+.nav-section{margin-top:14px}
+.nav-label{font-size:11px;letter-spacing:2px;opacity:.55;padding:0 10px 8px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:10px;font-size:14px;color:#DDE5DA;cursor:pointer;transition:all .18s;position:relative}
+.nav-item:hover{background:rgba(232,239,227,.08);color:#fff}
+.nav-item.active{background:rgba(232,239,227,.14);color:#fff}
+.nav-item.active::before{content:"";position:absolute;left:-18px;top:50%;transform:translateY(-50%);width:3px;height:18px;background:var(--amber);border-radius:0 3px 3px 0}
+.nav-icon{width:18px;height:18px;flex-shrink:0;opacity:.85}
+.nav-badge{margin-left:auto;font-size:11px;background:var(--amber);color:#fff;padding:1px 7px;border-radius:8px;font-weight:600}
+.sidebar-foot{margin-top:auto;padding-top:14px;border-top:1px solid rgba(232,239,227,.12);font-size:11px;opacity:.5;letter-spacing:1px;padding-left:10px}
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 28px;background:rgba(245,239,226,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--line-soft);position:sticky;top:0;z-index:20}
+.crumb{display:flex;align-items:center;gap:8px;color:var(--ink-soft);font-size:13px}
+.crumb strong{color:var(--ink);font-weight:600;font-size:15px}
+.topbar-actions{display:flex;align-items:center;gap:14px}
+.search-box{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 12px;width:280px;transition:all .2s;min-width:0}
+.search-box:focus-within{border-color:var(--moss);box-shadow:0 0 0 3px rgba(70,107,82,.1)}
+.search-box input{flex:1;min-width:0;border:none;outline:none;background:transparent;font-size:13px}
+.search-box svg{width:14px;height:14px;color:var(--ink-faint);flex-shrink:0}
+.sync-status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--moss)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--moss);box-shadow:0 0 0 4px rgba(70,107,82,.15)}
+.user-chip{display:flex;align-items:center;gap:8px;padding:5px 10px 5px 5px;border-radius:20px;background:#fff;border:1px solid var(--line)}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--moss-soft);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--moss-deep);font-weight:600}
+.user-name{font-size:13px;font-weight:500}
+.page{padding:24px 28px 100px;max-width:1320px;width:100%}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+.page-title{font-size:24px;font-weight:700;color:var(--ink);letter-spacing:.5px}
+.page-sub{color:var(--ink-soft);font-size:13px;margin-top:4px}
+.head-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;font-size:13px;font-weight:500;border:1px solid var(--line);background:#fff;color:var(--ink);transition:all .18s;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--moss);color:var(--moss)}
+.btn svg{width:14px;height:14px}
+.btn-primary{background:var(--moss);color:#fff;border-color:var(--moss)}
+.btn-primary:hover{background:var(--moss-deep);border-color:var(--moss-deep);color:#fff}
+.btn-amber{background:var(--amber);color:#fff;border-color:var(--amber)}
+.btn-amber:hover{background:#B6743A;border-color:#B6743A;color:#fff}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--ink-soft)}
+.btn-ghost:hover{background:rgba(70,107,82,.06);color:var(--moss)}
+.btn-danger{background:#fff;color:var(--ember);border-color:rgba(184,80,60,.3)}
+.btn-danger:hover{background:var(--ember);color:#fff;border-color:var(--ember)}
+.btn-sm{padding:6px 11px;font-size:12px}
+.btn-lg{padding:12px 22px;font-size:14px}
+.home-hero{position:relative;border-radius:var(--r-xl);overflow:hidden;background:linear-gradient(135deg,#3A5847 0%,#5A7A65 50%,#7B9485 100%);color:#fff;padding:36px 40px;margin-bottom:24px;box-shadow:var(--shadow-lift)}
+.hero-scene{position:absolute;inset:0;opacity:.92;pointer-events:none}
+.hero-content{position:relative;z-index:2;display:grid;grid-template-columns:1.2fr 1fr;gap:36px;align-items:center}
+.hero-date{font-size:12px;letter-spacing:3px;opacity:.75;margin-bottom:8px;text-transform:uppercase}
+.hero-title{font-size:32px;font-weight:700;line-height:1.25;margin-bottom:14px;letter-spacing:1px}
+.hero-title em{font-style:normal;color:var(--amber-soft)}
+.hero-quote{font-size:14px;opacity:.85;line-height:1.7;max-width:420px;border-left:2px solid var(--amber);padding-left:14px;margin-bottom:18px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+.hero-actions .btn{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25);color:#fff;backdrop-filter:blur(8px)}
+.hero-actions .btn:hover{background:rgba(255,255,255,.22);border-color:rgba(255,255,255,.4);color:#fff}
+.hero-actions .btn-primary{background:var(--amber);border-color:var(--amber)}
+.hero-actions .btn-primary:hover{background:#C67938;border-color:#C67938}
+.hero-stats{display:flex;flex-direction:column;gap:14px}
+.hero-stat{background:rgba(245,239,226,.92);color:var(--ink);border-radius:var(--r-md);padding:16px 18px;backdrop-filter:blur(8px);border:1px solid rgba(245,239,226,.4)}
+.hero-stat .stat-label{font-size:11px;letter-spacing:2px;color:var(--ink-faint);text-transform:uppercase}
+.hero-stat .stat-value{font-size:30px;font-weight:700;color:var(--moss-deep);font-family:var(--font-num);letter-spacing:-.5px;margin-top:4px;display:flex;align-items:baseline;gap:8px}
+.hero-stat .stat-value small{font-size:13px;color:var(--ink-soft);font-weight:500}
+.hero-stat .stat-progress{margin-top:10px;height:5px;background:rgba(70,107,82,.15);border-radius:3px;overflow:hidden}
+.hero-stat .stat-bar{height:100%;background:linear-gradient(90deg,var(--moss),var(--amber));border-radius:3px;transition:width .8s}
+.hero-stat .stat-foot{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--ink-soft)}
+.row{display:grid;gap:18px;margin-bottom:22px}
+.row-2{grid-template-columns:1.6fr 1fr}
+.row-3{grid-template-columns:1fr 1fr 1fr}
+.card{background:#fff;border-radius:var(--r-lg);border:1px solid var(--line-soft);box-shadow:var(--shadow);overflow:hidden;transition:all .2s}
+.card:hover{box-shadow:var(--shadow-lift)}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px 10px}
+.card-title{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.card-title .icon{width:18px;height:18px;color:var(--moss)}
+.card-extra{font-size:12px;color:var(--ink-soft);cursor:pointer}
+.card-extra:hover{color:var(--moss)}
+.card-body{padding:6px 22px 22px}
+.today-list{display:flex;flex-direction:column;gap:10px}
+.today-item{display:flex;align-items:center;gap:14px;padding:14px;border-radius:var(--r-md);background:#FAF6EC;border:1px solid transparent;cursor:pointer;transition:all .2s}
+.today-item:hover{border-color:var(--moss-soft);background:#fff}
+.today-item.done{opacity:.7}
+.today-item.done .ti-title{text-decoration:line-through;color:var(--ink-faint)}
+.ti-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--ink-faint);background:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .2s}
+.today-item.done .ti-check{background:var(--moss);border-color:var(--moss)}
+.ti-check svg{width:12px;height:12px;color:#fff;opacity:0;transition:opacity .2s}
+.today-item.done .ti-check svg{opacity:1}
+.ti-body{flex:1;min-width:0}
+.ti-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px}
+.ti-meta{font-size:11px;color:var(--ink-soft);display:flex;gap:10px;flex-wrap:wrap}
+.ti-tag{background:var(--moss-tint);color:var(--moss-deep);padding:1px 8px;border-radius:8px;font-size:10px;font-weight:500}
+.ti-tag.amber{background:var(--amber-soft);color:#8C5722}
+.ti-tag.sky{background:#DDE7ED;color:#3E5C6E}
+.path-card{background:linear-gradient(180deg,#F8F1DD 0%,#EFE3CB 100%);position:relative;overflow:hidden;padding:24px;border-radius:var(--r-lg);border:1px solid var(--line-soft);margin-bottom:22px}
+.path-card-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px;position:relative;z-index:2}
+.path-title{font-size:16px;font-weight:600;color:var(--moss-deep)}
+.path-sub{font-size:12px;color:var(--ink-soft)}
+.path-svg{width:100%;height:auto;display:block;position:relative;z-index:1}
+.path-milestone{cursor:pointer;transition:transform .2s}
+.path-milestone:hover{transform:scale(1.15)}
+.path-milestone-pending{opacity:.5}
+.habit-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.habit-cell{text-align:center;padding:14px 8px;border-radius:var(--r-md);background:#FAF6EC;cursor:pointer;transition:all .2s;border:1px solid transparent}
+.habit-cell:hover{background:#fff;border-color:var(--moss-soft)}
+.habit-icon{width:34px;height:34px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;background:var(--moss-tint);border-radius:50%;color:var(--moss-deep)}
+.habit-name{font-size:12px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.habit-streak{font-size:11px;color:var(--ink-soft);font-family:var(--font-num)}
+.habit-streak strong{color:var(--amber);font-weight:700;font-size:13px}
+.focus-card{background:linear-gradient(135deg,#3A5847,#5A7A65);color:#fff;border-radius:var(--r-lg);padding:22px;position:relative;overflow:hidden}
+.focus-time{font-size:46px;font-weight:200;font-family:var(--font-num);letter-spacing:2px;text-align:center;margin:8px 0;position:relative;z-index:2}
+.focus-time strong{font-weight:600;color:var(--amber-soft)}
+.focus-label{text-align:center;font-size:11px;letter-spacing:3px;opacity:.7;text-transform:uppercase}
+.focus-progress{height:4px;background:rgba(255,255,255,.15);border-radius:2px;margin:14px 0 12px;overflow:hidden}
+.focus-progress-bar{height:100%;background:linear-gradient(90deg,var(--amber-soft),var(--amber));border-radius:2px;transition:width .5s}
+.focus-tags{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;position:relative;z-index:2}
+.focus-tag{font-size:11px;background:rgba(255,255,255,.12);padding:3px 10px;border-radius:8px}
+.focus-actions{display:flex;gap:8px;justify-content:center;margin-top:14px;position:relative;z-index:2}
+.focus-actions .btn{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.25);font-size:12px;padding:7px 14px}
+.focus-actions .btn:hover{background:rgba(255,255,255,.26);color:#fff}
+.focus-actions .btn-amber{background:var(--amber);border-color:var(--amber);color:#fff}
+.mood-strip{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:90px;padding-top:10px}
+.mood-col{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.mood-bar{width:18px;background:linear-gradient(180deg,var(--moss),var(--moss-soft));border-radius:3px;min-height:6px;transition:all .3s}
+.mood-bar:hover{background:var(--amber)}
+.mood-day{font-size:10px;color:var(--ink-faint);font-family:var(--font-num)}
+.activity-list{display:flex;flex-direction:column;gap:14px}
+.activity-item{display:flex;gap:12px;align-items:flex-start}
+.activity-dot{width:8px;height:8px;border-radius:50%;background:var(--moss);margin-top:7px;flex-shrink:0;box-shadow:0 0 0 3px var(--moss-tint)}
+.activity-dot.amber{background:var(--amber);box-shadow:0 0 0 3px var(--amber-soft)}
+.activity-dot.ember{background:var(--ember);box-shadow:0 0 0 3px #F0D8D2}
+.activity-body{flex:1;min-width:0}
+.activity-title{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.activity-meta{font-size:11px;color:var(--ink-soft)}
+.achievement-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+.achievement{border-radius:var(--r-md);padding:14px;background:linear-gradient(135deg,#F8F1DD,#EFE3CB);text-align:center;border:1px solid rgba(216,140,74,.25);position:relative;cursor:pointer;transition:transform .2s}
+.achievement:hover{transform:translateY(-2px)}
+.achievement svg{width:42px;height:42px;margin:0 auto 8px;display:block}
+.achievement-name{font-size:13px;font-weight:600;color:var(--moss-deep);margin-bottom:4px}
+.achievement-date{font-size:11px;color:var(--ink-soft);font-family:var(--font-num)}
+.library-tabs{display:flex;gap:6px;border-bottom:1px solid var(--line-soft);margin-bottom:18px;overflow-x:auto;flex-wrap:nowrap}
+.library-tab{padding:10px 16px;font-size:13px;color:var(--ink-soft);border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap}
+.library-tab.active{color:var(--moss);border-bottom-color:var(--moss);font-weight:600}
+.library-tab:hover{color:var(--moss)}
+.library-tab .tab-count{font-size:11px;background:var(--moss-tint);color:var(--moss-deep);padding:1px 7px;border-radius:8px;margin-left:4px;font-weight:500}
+.filter-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#fff;border-radius:var(--r-md);padding:12px 16px;border:1px solid var(--line-soft);margin-bottom:18px}
+.filter-chip{padding:5px 12px;border-radius:16px;font-size:12px;background:#FAF6EC;color:var(--ink-soft);cursor:pointer;border:1px solid transparent;transition:all .15s}
+.filter-chip:hover{background:var(--moss-tint)}
+.filter-chip.active{background:var(--moss);color:#fff;border-color:var(--moss)}
+.filter-input{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:12px;background:#fff;outline:none;transition:all .15s}
+.filter-input:focus{border-color:var(--moss)}
+.record-list{display:flex;flex-direction:column;gap:12px}
+.record-row{display:grid;grid-template-columns:60px 1fr 140px 100px 80px;gap:16px;padding:14px 18px;border-radius:var(--r-md);background:#fff;border:1px solid var(--line-soft);align-items:center;cursor:pointer;transition:all .2s}
+.record-row:hover{border-color:var(--moss-soft);box-shadow:var(--shadow)}
+.record-thumb{width:60px;height:60px;border-radius:var(--r-sm);overflow:hidden;background:var(--moss-tint);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.record-thumb svg{width:100%;height:100%;display:block}
+.record-main{min-width:0;overflow:hidden}
+.record-name{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;max-width:100%}
+.record-name .name-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:0 1 auto}
+.record-tags{display:flex;gap:5px;flex-wrap:wrap}
+.record-tag{font-size:10px;background:var(--moss-tint);color:var(--moss-deep);padding:1px 7px;border-radius:6px;font-weight:500;flex-shrink:0;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.record-tag.amber{background:var(--amber-soft);color:#8C5722}
+.record-tag.sky{background:#DDE7ED;color:#3E5C6E}
+.record-meta{font-size:11px;color:var(--ink-soft);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.record-date{font-size:12px;color:var(--ink-soft);font-family:var(--font-num);text-align:right;flex-shrink:0}
+.record-status{text-align:center;flex-shrink:0;min-width:0}
+.status-pill{display:inline-block;font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px;letter-spacing:.5px;white-space:nowrap}
+.status-pill.todo{background:#E5DED1;color:#7A6E5C}
+.status-pill.doing{background:#DDE7ED;color:#3E5C6E}
+.status-pill.done{background:var(--moss-tint);color:var(--moss-deep)}
+.status-pill.paused{background:#F0D8D2;color:#9E3D2A}
+.record-progress{display:flex;align-items:center;gap:6px;justify-content:flex-end;min-width:0}
+.record-progress-bar{width:60px;height:5px;background:var(--moss-tint);border-radius:3px;overflow:hidden;flex-shrink:0}
+.record-progress-fill{height:100%;background:var(--moss);border-radius:3px}
+.record-progress-text{font-size:11px;color:var(--moss-deep);font-family:var(--font-num);font-weight:600;white-space:nowrap}
+.calendar-wrap{display:grid;grid-template-columns:1.7fr 1fr;gap:18px}
+.calendar-card{background:#fff;border-radius:var(--r-lg);border:1px solid var(--line-soft);padding:24px}
+.cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.cal-title{font-size:18px;font-weight:600;color:var(--ink)}
+.cal-nav{display:flex;gap:6px;align-items:center}
+.cal-nav-btn{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);background:#fff;color:var(--ink-soft);cursor:pointer;transition:all .15s}
+.cal-nav-btn:hover{background:var(--moss);color:#fff;border-color:var(--moss)}
+.cal-today{font-size:12px;color:var(--ink-soft);margin:0 6px;font-family:var(--font-num);cursor:pointer}
+.cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px}
+.cal-weekday{font-size:11px;color:var(--ink-faint);text-align:center;padding:6px 0;letter-spacing:1px}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-day{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;color:var(--ink);cursor:pointer;transition:all .15s;border:1px solid transparent;position:relative}
+.cal-day:hover{background:var(--moss-tint)}
+.cal-day.other{color:var(--ink-faint);opacity:.5}
+.cal-day.today{background:var(--moss);color:#fff;font-weight:700}
+.cal-day.selected{background:var(--amber);color:#fff;font-weight:600;border-color:var(--amber)}
+.cal-day .day-dots{display:flex;gap:2px;margin-top:3px;height:5px}
+.cal-day .day-dot{width:4px;height:4px;border-radius:50%;background:var(--moss)}
+.cal-day .day-dot.amber{background:var(--amber)}
+.cal-day .day-dot.ember{background:var(--ember)}
+.cal-day .day-dot.sky{background:var(--sky)}
+.cal-side{display:flex;flex-direction:column;gap:16px}
+.cal-day-detail{background:#fff;border-radius:var(--r-lg);border:1px solid var(--line-soft);padding:20px}
+.cal-day-title{font-size:14px;font-weight:600;margin-bottom:14px;color:var(--moss-deep)}
+.cal-day-events{display:flex;flex-direction:column;gap:10px}
+.cal-event{display:flex;gap:10px;padding:8px;border-radius:8px;background:var(--moss-tint);font-size:12px;cursor:pointer}
+.cal-event-time{color:var(--moss-deep);font-family:var(--font-num);font-weight:600;flex-shrink:0;min-width:42px}
+.cal-event-name{color:var(--ink)}
+.timeline{position:relative;padding-left:24px}
+.timeline::before{content:"";position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--line)}
+.tl-item{position:relative;padding-bottom:22px;cursor:pointer}
+.tl-item::before{content:"";position:absolute;left:-21px;top:8px;width:12px;height:12px;border-radius:50%;background:var(--moss);border:2px solid #fff;box-shadow:0 0 0 2px var(--moss-soft)}
+.tl-item.amber::before{background:var(--amber);box-shadow:0 0 0 2px var(--amber-soft)}
+.tl-item.ember::before{background:var(--ember);box-shadow:0 0 0 2px #F0D8D2}
+.tl-date{font-size:11px;color:var(--ink-soft);font-family:var(--font-num);margin-bottom:4px;letter-spacing:1px}
+.tl-title{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.tl-desc{font-size:12px;color:var(--ink-soft);line-height:1.6}
+.insights-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.insight-card{background:#fff;border-radius:var(--r-md);padding:18px;border:1px solid var(--line-soft);position:relative;overflow:hidden}
+.insight-card.gradient{background:linear-gradient(135deg,#3A5847,#5A7A65);color:#fff;border:none}
+.insight-label{font-size:11px;letter-spacing:2px;color:var(--ink-faint);text-transform:uppercase;margin-bottom:8px}
+.insight-card.gradient .insight-label{color:rgba(255,255,255,.7)}
+.insight-value{font-size:32px;font-weight:700;font-family:var(--font-num);color:var(--moss-deep);letter-spacing:-1px;margin-bottom:4px}
+.insight-card.gradient .insight-value{color:#fff}
+.insight-value small{font-size:14px;font-weight:500;color:var(--ink-soft);margin-left:4px}
+.insight-card.gradient .insight-value small{color:rgba(255,255,255,.75)}
+.insight-trend{font-size:11px;color:var(--moss);font-weight:500;display:flex;align-items:center;gap:4px}
+.insight-trend.down{color:var(--ember)}
+.insight-source{position:absolute;top:10px;right:14px;font-size:10px;color:var(--ink-faint);background:var(--moss-tint);padding:2px 6px;border-radius:6px}
+.insight-card.gradient .insight-source{color:rgba(255,255,255,.6);background:rgba(255,255,255,.12)}
+.chart-card{background:#fff;border-radius:var(--r-lg);padding:22px;border:1px solid var(--line-soft);margin-bottom:18px}
+.chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.chart-title{font-size:15px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
+.chart-source{font-size:10px;color:var(--ink-faint);background:var(--moss-tint);padding:3px 8px;border-radius:8px}
+.chart-tabs{display:flex;gap:4px;background:var(--moss-tint);padding:3px;border-radius:8px}
+.chart-tab{font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;color:var(--ink-soft)}
+.chart-tab.active{background:#fff;color:var(--moss);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.chart-area{height:220px;position:relative}
+.chart-area svg{width:100%;height:100%}
+.advice-list{display:flex;flex-direction:column;gap:10px}
+.advice-item{display:flex;gap:12px;padding:14px;border-radius:var(--r-md);background:#FAF6EC;border-left:3px solid var(--moss)}
+.advice-item.amber{border-left-color:var(--amber);background:#FCF3E4}
+.advice-item.sky{border-left-color:var(--sky);background:#EDF2F5}
+.advice-icon{width:32px;height:32px;flex-shrink:0;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;color:var(--moss-deep)}
+.advice-body{flex:1}
+.advice-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px}
+.advice-desc{font-size:12px;color:var(--ink-soft);line-height:1.6}
+.album-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.album-item{position:relative;border-radius:var(--r-md);overflow:hidden;background:#fff;border:1px solid var(--line-soft);cursor:pointer;transition:all .2s;aspect-ratio:1}
+.album-item:hover{transform:translateY(-3px);box-shadow:var(--shadow-lift)}
+.album-cover{width:100%;height:100%;display:block}
+.album-overlay{position:absolute;inset:0;background:linear-gradient(0deg,rgba(44,38,32,.7),transparent 60%);display:flex;flex-direction:column;justify-content:flex-end;padding:14px;color:#fff}
+.album-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.album-meta{font-size:11px;opacity:.85;display:flex;gap:8px;align-items:center}
+.album-tag{background:rgba(255,255,255,.22);padding:1px 8px;border-radius:6px;font-size:10px}
+.detail-wrap{display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
+.detail-main{background:#fff;border-radius:var(--r-lg);border:1px solid var(--line-soft);overflow:hidden}
+.detail-cover{height:260px;background:linear-gradient(135deg,#5A7A65,#7B9485);position:relative;overflow:hidden}
+.detail-cover svg{width:100%;height:100%;display:block}
+.detail-body{padding:24px}
+.detail-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.detail-title{font-size:24px;font-weight:700;color:var(--ink);margin-bottom:8px;letter-spacing:.5px;line-height:1.3}
+.detail-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.detail-info{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:22px;padding:18px;background:var(--moss-tint);border-radius:var(--r-md)}
+.detail-info-item .info-label{font-size:11px;color:var(--ink-faint);letter-spacing:1px;margin-bottom:4px;text-transform:uppercase}
+.detail-info-item .info-value{font-size:14px;color:var(--ink);font-weight:500}
+.detail-section{margin-bottom:22px}
+.detail-section-title{font-size:13px;font-weight:600;color:var(--moss-deep);margin-bottom:10px;display:flex;align-items:center;gap:6px;letter-spacing:.5px}
+.detail-section-title::before{content:"";width:3px;height:13px;background:var(--moss);border-radius:2px}
+.detail-text{font-size:14px;color:var(--ink-soft);line-height:1.85;white-space:pre-line}
+.detail-relations{display:flex;flex-direction:column;gap:8px}
+.relation-link{display:flex;align-items:center;gap:10px;padding:10px;background:#FAF6EC;border-radius:8px;cursor:pointer;font-size:13px}
+.relation-link:hover{background:var(--moss-tint)}
+.relation-icon{width:30px;height:30px;border-radius:8px;background:var(--moss-soft);color:var(--moss-deep);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.relation-icon svg{width:14px;height:14px}
+.detail-side{display:flex;flex-direction:column;gap:16px}
+.detail-side-card{background:#fff;border-radius:var(--r-lg);padding:20px;border:1px solid var(--line-soft)}
+.activity-log{display:flex;flex-direction:column;gap:12px;max-height:300px;overflow-y:auto}
+.log-item{display:flex;gap:10px;font-size:12px;padding-bottom:10px;border-bottom:1px dashed var(--line-soft)}
+.log-item:last-child{border-bottom:none;padding-bottom:0}
+.log-time{color:var(--ink-faint);font-family:var(--font-num);flex-shrink:0;min-width:60px}
+.log-text{color:var(--ink-soft);line-height:1.6}
+.log-text strong{color:var(--ink);font-weight:600}
+.setting-section{background:#fff;border-radius:var(--r-lg);border:1px solid var(--line-soft);margin-bottom:16px;overflow:hidden}
+.setting-head{padding:18px 22px;border-bottom:1px solid var(--line-soft);background:#FAF6EC}
+.setting-head h3{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:3px}
+.setting-head p{font-size:12px;color:var(--ink-soft)}
+.setting-list{padding:6px 0}
+.setting-item{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--line-soft)}
+.setting-item:last-child{border-bottom:none}
+.setting-item-info{flex:1}
+.setting-item-title{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:2px}
+.setting-item-desc{font-size:11px;color:var(--ink-soft)}
+.setting-item-action{display:flex;align-items:center;gap:8px}
+.switch{position:relative;width:38px;height:22px;background:#D8D2C4;border-radius:11px;cursor:pointer;transition:all .2s}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:all .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.switch.on{background:var(--moss)}
+.switch.on::after{left:18px}
+.modal-mask{position:fixed;inset:0;background:rgba(44,38,32,.5);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal-mask.open{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:#fff;border-radius:var(--r-lg);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:slideUp .3s;box-shadow:var(--shadow-lift)}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-head{padding:20px 24px;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:2}
+.modal-title{font-size:16px;font-weight:600}
+.modal-close{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);cursor:pointer}
+.modal-close:hover{background:var(--moss-tint);color:var(--moss-deep)}
+.modal-body{padding:24px}
+.modal-foot{padding:16px 24px;border-top:1px solid var(--line-soft);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:#fff}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12px;font-weight:500;color:var(--ink);margin-bottom:6px}
+.form-label .req{color:var(--ember);margin-left:2px}
+.form-input,.form-select,.form-textarea{width:100%;max-width:100%;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:#fff;outline:none;transition:all .15s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--moss);box-shadow:0 0 0 3px rgba(70,107,82,.1)}
+
+/* 输入框 placeholder 溢出省略号（移动端窄屏尤其重要） */
+input::placeholder,input::-webkit-input-placeholder{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-faint);opacity:1
+}
+input,textarea,select{max-width:100%;min-width:0}
+input{overflow:hidden;text-overflow:ellipsis}
+.form-textarea{resize:vertical;min-height:80px;line-height:1.6}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-hint{font-size:11px;color:var(--ink-faint);margin-top:4px}
+.drawer-mask{position:fixed;inset:0;background:rgba(44,38,32,.4);z-index:90;display:none;backdrop-filter:blur(2px)}
+.drawer-mask.open{display:block;animation:fadeIn .2s}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:420px;background:#fff;box-shadow:-8px 0 24px rgba(0,0,0,.1);z-index:91;transform:translateX(100%);transition:transform .3s;display:flex;flex-direction:column}
+.drawer.open{transform:translateX(0)}
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-30px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:200;opacity:0;transition:all .3s;box-shadow:var(--shadow-lift)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.amber{background:var(--amber)}
+.toast.ember{background:var(--ember)}
+.lightbox-mask{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:150;display:none;align-items:center;justify-content:center;padding:30px}
+.lightbox-mask.open{display:flex}
+.lightbox{max-width:90vw;max-height:90vh;border-radius:var(--r-md);overflow:hidden;position:relative}
+.lightbox svg{max-width:90vw;max-height:85vh;display:block}
+.lightbox-close{position:absolute;top:-44px;right:0;color:#fff;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.15);border-radius:50%;cursor:pointer}
+.lightbox-cap{position:absolute;bottom:-44px;left:0;right:0;text-align:center;color:rgba(255,255,255,.85);font-size:12px}
+.celebrate{position:fixed;inset:0;pointer-events:none;z-index:180;display:none}
+.celebrate.show{display:block}
+.celebrate-burst{position:absolute;width:8px;height:8px;border-radius:50%;animation:burst 1s ease-out forwards}
+@keyframes burst{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+
+/* 自定义确认弹窗 */
+.confirm-mask{position:fixed;inset:0;background:rgba(44,38,32,.45);z-index:220;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.confirm-mask.open{display:flex;animation:fadeIn .2s ease-out}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.confirm-box{background:#F5EFE2;border-radius:var(--r-lg);padding:30px 28px 22px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(44,38,32,.28);animation:popIn .25s cubic-bezier(.4,1.4,.6,1);border:1px solid var(--line-soft)}
+@keyframes popIn{from{opacity:0;transform:scale(.92) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.confirm-icon{width:52px;height:52px;margin:0 auto 16px;background:var(--amber-soft);color:#8C5722;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.confirm-icon.danger{background:#F0D8D2;color:var(--ember)}
+.confirm-icon.safe{background:var(--moss-soft);color:var(--moss-deep)}
+.confirm-icon svg{width:28px;height:28px}
+.confirm-title{font-size:18px;font-weight:700;color:var(--ink);text-align:center;margin-bottom:10px;letter-spacing:.5px}
+.confirm-msg{font-size:14px;color:var(--ink-soft);text-align:center;line-height:1.75;margin-bottom:14px}
+.confirm-detail{background:rgba(70,107,82,.06);border-radius:10px;padding:12px 14px;font-size:12px;color:var(--ink-soft);margin-bottom:18px;line-height:1.7}
+.confirm-detail strong{color:var(--ink);font-weight:600}
+.confirm-detail .detail-row{display:flex;justify-content:space-between;padding:3px 0}
+.confirm-actions{display:flex;gap:10px;justify-content:center}
+.confirm-actions .btn{min-width:104px;justify-content:center;padding:11px 18px;font-size:13px}
+.confirm-actions .btn-primary{background:var(--ember);color:#fff;border-color:var(--ember)}
+.confirm-actions .btn-primary:hover{background:#9E3D2A;border-color:#9E3D2A}
+.mobile-nav{display:none}
+.fab{display:none}
+@media (max-width:980px){
+  .app{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .topbar{padding:12px 16px}
+  .search-box{width:160px}
+  .user-chip .user-name{display:none}
+  .page{padding:16px 16px 110px}
+  .row-2,.row-3,.insights-grid,.calendar-wrap,.detail-wrap{grid-template-columns:1fr}
+  .achievement-row{grid-template-columns:repeat(3,1fr)}
+  .hero-content{grid-template-columns:1fr}
+  .hero-stats{flex-direction:row}
+  .hero-stat{flex:1}
+  .hero-stat .stat-value{font-size:22px}
+  .hero-title{font-size:24px}
+  .record-row{grid-template-columns:52px minmax(0,1fr) auto;gap:10px;padding:12px 14px}
+  .record-row .record-progress,.record-row .record-date{display:none}
+  .record-row .record-thumb{width:52px;height:52px}
+  .habit-grid{grid-template-columns:repeat(3,1fr)}
+  .insight-value{font-size:24px}
+  .album-grid{grid-template-columns:repeat(2,1fr)}
+  .drawer{width:100%}
+  .mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-top:1px solid var(--line-soft);padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:30;justify-content:space-around}
+  .mobile-nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;color:var(--ink-faint);font-size:10px;cursor:pointer;border-radius:8px}
+  .mobile-nav-item.active{color:var(--moss)}
+  .mobile-nav-item svg{width:20px;height:20px}
+  .fab{display:flex;position:fixed;bottom:80px;right:18px;width:52px;height:52px;border-radius:50%;background:var(--moss);color:#fff;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(70,107,82,.4);cursor:pointer;z-index:25}
+  .fab svg{width:22px;height:22px}
+  .form-row{grid-template-columns:1fr}
+  .detail-cover{height:200px}
+}
+@media (max-width:560px){
+  .achievement-row{grid-template-columns:1fr 1fr}
+  .hero-stats{flex-direction:column}
+  .search-box{width:120px}
+  .topbar-actions .sync-status{display:none}
+}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:rgba(70,107,82,.25);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(70,107,82,.4)}
+.hidden{display:none !important}
+</style>
+</head>
+<body>
+
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">
+    <svg class="brand-logo" viewBox="0 0 60 60">
+      <defs><linearGradient id="brandG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D88C4A"/><stop offset="1" stop-color="#B8503C"/></linearGradient></defs>
+      <rect x="6" y="6" width="48" height="48" rx="12" fill="#F5EFE2"/>
+      <path d="M10 44 L20 28 L26 34 L34 22 L42 30 L50 24 L50 50 L10 50 Z" fill="#466B52" opacity=".92"/>
+      <path d="M22 18 Q30 12 38 18" stroke="url(#brandG)" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M16 46 Q26 40 30 36 Q36 30 44 28" stroke="#D88C4A" stroke-width="1.5" fill="none" stroke-dasharray="2 2"/>
+      <circle cx="30" cy="36" r="2" fill="#F5EFE2"/>
+    </svg>
+    <div>
+      <div class="brand-name">远行</div>
+      <div class="brand-tag">YUAN · XING</div>
+    </div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">日常</div>
+    <div class="nav-item active" data-page="home"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12 L12 4 L21 12 M5 10 V20 H10 V14 H14 V20 H19 V10"/></svg><span>首页</span></div>
+    <div class="nav-item" data-page="today"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7 V12 L15 14"/></svg><span>今日三件事</span><span class="nav-badge" id="todayBadge">3</span></div>
+    <div class="nav-item" data-page="focus"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7 V12 L15 14 M9 2 H15 M9 22 H15 M2 9 V15 M22 9 V15"/></svg><span>专注计时</span></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">规划</div>
+    <div class="nav-item" data-page="library"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><rect x="4" y="13" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg><span>记录库</span></div>
+    <div class="nav-item" data-page="calendar"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10 H21 M8 3 V7 M16 3 V7"/></svg><span>计划日历</span></div>
+    <div class="nav-item" data-page="habit"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21 Q4 14 4 9 Q4 4 9 4 Q12 4 12 7 Q12 4 15 4 Q20 4 20 9 Q20 14 12 21"/></svg><span>习惯印记</span></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">回顾</div>
+    <div class="nav-item" data-page="insights"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20 V8 M9 20 V4 M15 20 V12 M21 20 V6"/></svg><span>数据洞察</span></div>
+    <div class="nav-item" data-page="album"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 17 L16 12 L5 19"/></svg><span>素材相册</span></div>
+    <div class="nav-item" data-page="review"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4 H19 V20 H5 Z M5 9 H19 M9 4 V20"/></svg><span>成长日记</span></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-label">其它</div>
+    <div class="nav-item" data-page="settings"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg><span>设置</span></div>
+  </div>
+  <div class="sidebar-foot">v1.0 · 由 林夏 持续使用 87 天</div>
+</aside>
+
+<main class="main">
+<header class="topbar">
+  <div class="crumb"><strong id="crumbTitle">首页</strong><span id="crumbSub" style="opacity:.6">·</span><span id="crumbDate" style="opacity:.7"></span></div>
+  <div class="topbar-actions">
+    <div class="sync-status"><span class="sync-dot"></span>本地保存</div>
+    <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><input type="text" placeholder="搜索记录、目标、标签…" id="globalSearch" oninput="handleGlobalSearch(this.value)"></div>
+    <div class="user-chip"><div class="user-avatar">林</div><span class="user-name">林夏</span></div>
+  </div>
+</header>
+
+<section class="page" id="page-home">
+  <div class="home-hero">
+    <svg class="hero-scene" viewBox="0 0 800 320" preserveAspectRatio="xMidYMid slice">
+      <defs><linearGradient id="skyG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7B9485" stop-opacity=".4"/><stop offset="1" stop-color="#3A5847" stop-opacity="0"/></linearGradient><linearGradient id="mtnG1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5A7A65"/><stop offset="1" stop-color="#3A5847"/></linearGradient><linearGradient id="mtnG2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#466B52"/><stop offset="1" stop-color="#2F4A39"/></linearGradient></defs>
+      <rect width="800" height="320" fill="url(#skyG)"/>
+      <path d="M0 230 L100 160 L180 200 L260 140 L340 180 L420 130 L520 170 L620 120 L720 160 L800 130 L800 320 L0 320 Z" fill="url(#mtnG1)" opacity=".5"/>
+      <path d="M0 270 L80 220 L160 240 L240 200 L320 230 L420 190 L500 220 L580 180 L680 210 L800 180 L800 320 L0 320 Z" fill="url(#mtnG2)" opacity=".7"/>
+      <path d="M30 290 Q200 260 380 240 Q560 220 760 180" stroke="#D88C4A" stroke-width="2" fill="none" stroke-dasharray="6 4" opacity=".7"/>
+      <circle cx="620" cy="80" r="36" fill="#F2D9BC" opacity=".8"/>
+      <circle cx="620" cy="80" r="22" fill="#D88C4A" opacity=".9"/>
+    </svg>
+    <div class="hero-content">
+      <div>
+        <div class="hero-date">2026年9月12日 · 周六 · 晨光初照</div>
+        <h1 class="hero-title">今天，继续走在<em>自己的路上</em></h1>
+        <p class="hero-quote">"把每一次微小前进，留在看得见的路上。"
+        <br/>—— 远行 · 第87天</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" onclick="openTodayFocus()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>开始今日专注</button>
+          <button class="btn" onclick="navigateTo('today')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>今日三件事</button>
+          <button class="btn" onclick="openNewRecord()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>新增记录</button>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="stat-label">2026 年成长进度</div>
+          <div class="stat-value">68<small>%</small></div>
+          <div class="stat-progress"><div class="stat-bar" style="width:68%"></div></div>
+          <div class="stat-foot"><span>已完成 27 项</span><span>剩余 13 项</span></div>
+        </div>
+        <div class="hero-stat">
+          <div class="stat-label">本季 · Q3 重点目标</div>
+          <div class="stat-value">3<small>/ 5 关键里程</small></div>
+          <div class="stat-progress"><div class="stat-bar" style="width:60%;background:linear-gradient(90deg,var(--amber),#B8503C)"></div></div>
+          <div class="stat-foot"><span>首个10K · 已完成</span><span>散文初稿 · 进行中</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="path-card">
+    <div class="path-card-head">
+      <div><div class="path-title">2026 · 我的成长路径</div><div class="path-sub">点亮里程碑，留下看得见的足迹</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="navigateTo('insights')">查看完整报告 →</button>
+    </div>
+    <svg class="path-svg" viewBox="0 0 1000 180">
+      <defs><linearGradient id="pathG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#C8D5BB"/><stop offset=".5" stop-color="#D88C4A"/><stop offset="1" stop-color="#B8503C"/></linearGradient></defs>
+      <path d="M40 140 Q180 110 280 100 T520 80 T760 50 T960 30" stroke="url(#pathG)" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <g class="path-milestone" onclick="openDetail('r30')"><circle cx="80" cy="135" r="14" fill="#466B52" stroke="#F5EFE2" stroke-width="3"/><text x="80" y="170" text-anchor="middle" font-size="11" fill="#5A4F44">1月</text><text x="80" y="148" text-anchor="middle" font-size="10" fill="#2C2620" font-weight="600">新年规划</text></g>
+      <g class="path-milestone" onclick="openDetail('r12')"><circle cx="200" cy="115" r="12" fill="#C8D5BB" stroke="#F5EFE2" stroke-width="3"/><text x="200" y="170" text-anchor="middle" font-size="11" fill="#5A4F44">2月</text><text x="200" y="128" text-anchor="middle" font-size="10" fill="#2C2620">晨跑开启</text></g>
+      <g class="path-milestone" onclick="openDetail('r30')"><circle cx="350" cy="95" r="14" fill="#466B52" stroke="#F5EFE2" stroke-width="3"/><path d="M344 90 L348 95 L356 87" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/><text x="350" y="170" text-anchor="middle" font-size="11" fill="#5A4F44">4月</text><text x="350" y="108" text-anchor="middle" font-size="10" fill="#2C2620" font-weight="600">首跑5公里</text></g>
+      <g class="path-milestone" onclick="openDetail('r29')"><circle cx="490" cy="85" r="12" fill="#C8D5BB" stroke="#F5EFE2" stroke-width="3"/><text x="490" y="170" text-anchor="middle" font-size="11" fill="#5A4F44">6月</text><text x="490" y="98" text-anchor="middle" font-size="10" fill="#2C2620">散文开篇</text></g>
+      <g class="path-milestone" onclick="openDetail('r28')"><circle cx="600" cy="70" r="14" fill="#466B52" stroke="#F5EFE2" stroke-width="3"/><path d="M594 65 L598 70 L606 62" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/><text x="600" y="170" text-anchor="middle" font-size="11" fill="#5A4F44">7月</text><text x="600" y="83" text-anchor="middle" font-size="10" fill="#2C2620" font-weight="600">首个10公里</text></g>
+      <g class="path-milestone" onclick="openDetail('r4')"><circle cx="720" cy="55" r="12" fill="#C8D5BB" stroke="#F5EFE2" stroke-width="3"/><text x="720" y="170" text-anchor="middle" font-size="11" fill="#5A4F44">8月</text><text x="720" y="68" text-anchor="middle" font-size="10" fill="#2C2620">钢琴入门</text></g>
+      <g class="path-milestone" onclick="openDetail('r2')"><circle cx="830" cy="40" r="16" fill="#D88C4A" stroke="#F5EFE2" stroke-width="3"/><circle cx="830" cy="40" r="6" fill="#F5EFE2"/><text x="830" y="170" text-anchor="middle" font-size="11" fill="#8C5722" font-weight="600">9月·现在</text><text x="830" y="55" text-anchor="middle" font-size="10" fill="#2C2620" font-weight="600">散文初稿</text></g>
+      <g class="path-milestone path-milestone-pending"><circle cx="940" cy="28" r="12" fill="#fff" stroke="#C8D5BB" stroke-width="2" stroke-dasharray="3 3"/><text x="940" y="170" text-anchor="middle" font-size="11" fill="#9C8E7E">11月</text><text x="940" y="43" text-anchor="middle" font-size="10" fill="#9C8E7E">半马 · 待</text></g>
+    </svg>
+  </div>
+
+  <div class="row row-3">
+    <div class="card"><div class="card-head"><div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7 V12 L15 14"/></svg>今日三件事</div><span class="card-extra" onclick="navigateTo('today')">进入清单 →</span></div><div class="card-body"><div class="today-list" id="homeTodayList"></div></div></div>
+    <div class="card"><div class="card-head"><div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21 Q4 14 4 9 Q4 4 9 4 Q12 4 12 7 Q12 4 15 4 Q20 4 20 9 Q20 14 12 21"/></svg>习惯印记</div><span class="card-extra" onclick="navigateTo('habit')">查看矩阵 →</span></div><div class="card-body"><div class="habit-grid" id="homeHabitGrid"></div></div></div>
+    <div class="focus-card"><div class="focus-label">今日专注</div><div class="focus-time"><strong>47</strong>:23</div><div class="focus-progress"><div class="focus-progress-bar" style="width:62%"></div></div><div class="focus-tags"><span class="focus-tag">散文修改 · 22 分钟</span><span class="focus-tag">晨跑笔记 · 15 分钟</span><span class="focus-tag">阅读 · 10 分钟</span></div><div class="focus-actions"><button class="btn" onclick="startFocus()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>开始计时</button><button class="btn btn-amber" onclick="openNewRecord('focus')">记一次</button></div></div>
+  </div>
+
+  <div class="row row-2">
+    <div class="card"><div class="card-head"><div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20 V8 M9 20 V4 M15 20 V12 M21 20 V6"/></svg>本周完成趋势</div><span class="card-extra" onclick="navigateTo('insights')">完整报告 →</span></div><div class="card-body"><div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px"><div><div style="font-size:11px;color:var(--ink-faint);letter-spacing:2px;margin-bottom:4px">已完成 12 / 计划 18</div><div style="font-size:28px;font-weight:700;color:var(--moss-deep);font-family:var(--font-num)">67<small style="font-size:14px;color:var(--ink-soft);font-weight:500">%</small></div><div style="font-size:11px;color:var(--moss);margin-top:4px">↑ 较上周提升 14%</div></div><div style="font-size:11px;color:var(--ink-faint);text-align:right">数据来源：<br/><span style="color:var(--ink-soft)">所有记录 · 本周 · 9.7-9.13</span></div></div><div class="mood-strip" id="weekTrend"></div><div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--ink-faint)"><span>9/7</span><span>9/8</span><span>9/9</span><span>9/10</span><span>9/11</span><span>9/12</span><span>9/13</span></div></div></div>
+    <div class="card"><div class="card-head"><div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 3 M12 22a10 10 0 1 1 0-20 10 10 0 0 1 0 20z"/></svg>最近活动</div></div><div class="card-body"><div class="activity-list" id="homeActivity"></div></div></div>
+  </div>
+
+  <div class="card"><div class="card-head"><div class="card-title"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 8 L22 9 L17 14 L18 21 L12 18 L6 21 L7 14 L2 9 L9 8 Z"/></svg>阶段成果 · 已点亮 4 个里程碑</div><span class="card-extra" onclick="navigateTo('review')">成长日记 →</span></div><div class="card-body"><div class="achievement-row" id="achievementRow"></div></div></div>
+</section>
+
+<section class="page hidden" id="page-library">
+  <div class="page-head"><div><h1 class="page-title">记录库</h1><p class="page-sub">所有目标、计划、日记与复盘都汇集在这里</p></div><div class="head-actions"><button class="btn" onclick="exportData()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M7 10l5 5 5-5 M12 15V3"/></svg>导出 JSON</button><button class="btn" onclick="document.getElementById('importFile').click()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4 M17 8l-5-5-5 5 M12 3v12"/></svg>导入恢复</button><input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)"><button class="btn btn-primary" onclick="openNewRecord()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>新增记录</button></div></div>
+  <div class="library-tabs" id="libraryTabs">
+    <div class="library-tab active" data-type="all">全部<span class="tab-count" id="cnt-all">0</span></div>
+    <div class="library-tab" data-type="goal">年度目标<span class="tab-count" id="cnt-goal">0</span></div>
+    <div class="library-tab" data-type="plan">计划<span class="tab-count" id="cnt-plan">0</span></div>
+    <div class="library-tab" data-type="today">今日<span class="tab-count" id="cnt-today">0</span></div>
+    <div class="library-tab" data-type="habit">习惯<span class="tab-count" id="cnt-habit">0</span></div>
+    <div class="library-tab" data-type="focus">专注<span class="tab-count" id="cnt-focus">0</span></div>
+    <div class="library-tab" data-type="mood">心情<span class="tab-count" id="cnt-mood">0</span></div>
+    <div class="library-tab" data-type="diary">日记<span class="tab-count" id="cnt-diary">0</span></div>
+    <div class="library-tab" data-type="review">复盘<span class="tab-count" id="cnt-review">0</span></div>
+    <div class="library-tab" data-type="milestone">里程碑<span class="tab-count" id="cnt-milestone">0</span></div>
+  </div>
+  <div class="filter-row"><span style="font-size:12px;color:var(--ink-soft)">筛选：</span><span class="filter-chip active" data-filter="all">全部状态</span><span class="filter-chip" data-filter="doing">进行中</span><span class="filter-chip" data-filter="done">已完成</span><span class="filter-chip" data-filter="todo">待开始</span><span class="filter-chip" data-filter="paused">暂停</span><span style="margin-left:auto;display:flex;gap:8px;align-items:center"><span style="font-size:12px;color:var(--ink-soft)">标签：</span><input type="text" class="filter-input" placeholder="搜索标签…" id="tagSearch" oninput="applyLibraryFilter()"><select class="filter-input" id="sortBy" onchange="applyLibraryFilter()"><option value="date-desc">按日期 ↓</option><option value="date-asc">按日期 ↑</option><option value="name">按名称</option><option value="progress">按进度</option></select></span></div>
+  <div class="record-list" id="libraryList"></div>
+</section>
+
+<section class="page hidden" id="page-calendar">
+  <div class="page-head"><div><h1 class="page-title">计划日历</h1><p class="page-sub">月视图 + 时间轴，看见完整的成长节奏</p></div><div class="head-actions"><button class="btn" onclick="switchView('month')">月视图</button><button class="btn" onclick="switchView('timeline')">时间轴</button><button class="btn btn-primary" onclick="openNewRecord('plan')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>新增计划</button></div></div>
+  <div id="calendarView"><div class="calendar-wrap"><div class="calendar-card"><div class="cal-head"><div class="cal-title" id="calTitle">2026年9月</div><div class="cal-nav"><button class="cal-nav-btn" onclick="calPrev()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><span class="cal-today" onclick="calToday()">回到今天</span><button class="cal-nav-btn" onclick="calNext()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button></div></div><div class="cal-weekdays"><div class="cal-weekday">日</div><div class="cal-weekday">一</div><div class="cal-weekday">二</div><div class="cal-weekday">三</div><div class="cal-weekday">四</div><div class="cal-weekday">五</div><div class="cal-weekday">六</div></div><div class="cal-days" id="calDays"></div></div><div class="cal-side"><div class="cal-day-detail"><div class="cal-day-title" id="calDayTitle">9月12日 · 周六 · 今日</div><div class="cal-day-events" id="calDayEvents"></div></div><div class="card" style="padding:18px"><div style="font-size:14px;font-weight:600;color:var(--moss-deep);margin-bottom:14px;display:flex;align-items:center;gap:6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>关键提醒</div><div style="display:flex;flex-direction:column;gap:10px" id="reminderList"></div></div></div></div></div>
+  <div id="timelineView" class="hidden" style="background:#fff;border-radius:var(--r-lg);padding:24px;border:1px solid var(--line-soft)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px"><h2 style="font-size:16px;font-weight:600;color:var(--ink)">我的成长时间轴 · 2026</h2><span style="font-size:12px;color:var(--ink-soft)">按时间倒序展示所有里程碑与重要节点</span></div><div class="timeline" id="timelineList"></div></div>
+</section>
+
+<section class="page hidden" id="page-habit">
+  <div class="page-head"><div><h1 class="page-title">习惯印记</h1><p class="page-sub">连续打卡，时间的复利</p></div><div class="head-actions"><button class="btn" onclick="openNewRecord('habit')">+ 添加习惯</button><button class="btn btn-primary" onclick="toast('请选择下方要打卡的习惯 ✨')">今日打卡</button></div></div>
+  <div class="row row-3" id="habitFullGrid"></div>
+  <div class="card"><div class="card-head"><div class="card-title">晨跑 · 最近 30 天</div><div class="chart-tabs"><span class="chart-tab active">30天</span><span class="chart-tab">本年</span></div></div><div class="card-body"><div id="habitHeatmap" style="display:grid;grid-template-columns:repeat(15,1fr);gap:4px"></div><div style="display:flex;justify-content:space-between;margin-top:12px;font-size:11px;color:var(--ink-faint)"><span>8月14日</span><span>共完成 19 次 · 缺席 11 天 · 最长连续 7 天</span><span>今天</span></div></div></div>
+</section>
+
+<section class="page hidden" id="page-insights">
+  <div class="page-head"><div><h1 class="page-title">数据洞察</h1><p class="page-sub">让成长可被解读</p></div><div class="head-actions"><div class="chart-tabs"><span class="chart-tab">本周</span><span class="chart-tab active">本月</span><span class="chart-tab">本季</span><span class="chart-tab">本年</span><span class="chart-tab">自定义</span></div></div></div>
+  <div class="insights-grid">
+    <div class="insight-card gradient"><div class="insight-label">本月完成率</div><div class="insight-value">74<small>%</small></div><div class="insight-trend" style="color:var(--amber-soft)">↑ 较上月提升 12%</div><span class="insight-source">来源：9月完成记录</span></div>
+    <div class="insight-card"><div class="insight-label">专注总时长</div><div class="insight-value">28.5<small>h</small></div><div class="insight-trend">↑ 较上月提升 18%</div><span class="insight-source">来源：专注记录</span></div>
+    <div class="insight-card"><div class="insight-label">最长连续打卡</div><div class="insight-value">23<small>天</small></div><div class="insight-trend">晨跑 · 5月12日-6月3日</div><span class="insight-source">来源：习惯打卡</span></div>
+    <div class="insight-card"><div class="insight-label">里程碑达成</div><div class="insight-value">4<small>/ 8</small></div><div class="insight-trend down">2 项待本月完成</div><span class="insight-source">来源：年度目标</span></div>
+  </div>
+  <div class="row row-2">
+    <div class="chart-card"><div class="chart-head"><div class="chart-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 20 V8 M9 20 V4 M15 20 V12 M21 20 V6"/></svg>完成趋势 · 近 30 天<span class="chart-source">数据来源：所有完成项</span></div></div><div class="chart-area"><svg viewBox="0 0 600 220" preserveAspectRatio="none"><defs><linearGradient id="lineFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#466B52" stop-opacity=".35"/><stop offset="1" stop-color="#466B52" stop-opacity="0"/></linearGradient></defs><g stroke="#E8DEC9" stroke-width="1" stroke-dasharray="3 3"><line x1="40" y1="40" x2="580" y2="40"/><line x1="40" y1="90" x2="580" y2="90"/><line x1="40" y1="140" x2="580" y2="140"/><line x1="40" y1="190" x2="580" y2="190"/></g><g font-size="10" fill="#9C8E7E"><text x="30" y="44" text-anchor="end">10</text><text x="30" y="94" text-anchor="end">7</text><text x="30" y="144" text-anchor="end">4</text><text x="30" y="194" text-anchor="end">1</text></g><g font-size="10" fill="#9C8E7E"><text x="60" y="210" text-anchor="middle">8/14</text><text x="180" y="210" text-anchor="middle">8/22</text><text x="320" y="210" text-anchor="middle">9/1</text><text x="450" y="210" text-anchor="middle">9/7</text><text x="560" y="210" text-anchor="middle">9/12</text></g><path d="M40 160 L80 130 L130 145 L180 100 L230 110 L280 80 L320 95 L370 65 L420 75 L470 50 L520 70 L560 60 L580 55 L580 190 L40 190 Z" fill="url(#lineFill)"/><path d="M40 160 L80 130 L130 145 L180 100 L230 110 L280 80 L320 95 L370 65 L420 75 L470 50 L520 70 L560 60 L580 55" stroke="#466B52" stroke-width="2.5" fill="none" stroke-linejoin="round"/><g fill="#F5EFE2" stroke="#466B52" stroke-width="2"><circle cx="40" cy="160" r="3"/><circle cx="180" cy="100" r="3"/><circle cx="280" cy="80" r="3"/><circle cx="370" cy="65" r="3"/><circle cx="470" cy="50" r="4"/><circle cx="560" cy="60" r="4"/></g><g><circle cx="470" cy="50" r="8" fill="none" stroke="#D88C4A" stroke-width="2" opacity=".5"/><text x="470" y="36" text-anchor="middle" font-size="10" fill="#8C5722" font-weight="600">峰值 9/7</text></g></svg></div></div>
+    <div class="chart-card"><div class="chart-head"><div class="chart-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="9" r="6"/><circle cx="15" cy="15" r="6"/></svg>分类占比<span class="chart-source">来源：本月各类型记录</span></div></div><div class="chart-area" style="display:flex;align-items:center;gap:18px"><svg width="180" height="180" viewBox="0 0 180 180"><circle cx="90" cy="90" r="60" fill="#fff" stroke="#E8DEC9"/><path d="M90 30 A60 60 0 0 1 142 115 L90 90 Z" fill="#466B52"/><path d="M142 115 A60 60 0 0 1 60 140 L90 90 Z" fill="#D88C4A"/><path d="M60 140 A60 60 0 0 1 35 78 L90 90 Z" fill="#7B96A8"/><path d="M35 78 A60 60 0 0 1 90 30 L90 90 Z" fill="#C8D5BB"/><circle cx="90" cy="90" r="32" fill="#fff"/><text x="90" y="86" text-anchor="middle" font-size="11" fill="#9C8E7E">本月</text><text x="90" y="102" text-anchor="middle" font-size="16" fill="#2F4A39" font-weight="700">42</text><text x="90" y="115" text-anchor="middle" font-size="9" fill="#9C8E7E">条记录</text></svg><div style="flex:1"><div style="font-size:13px;font-weight:500;margin-bottom:12px;color:var(--ink)">本月行为分布</div><div style="display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:10px;height:10px;background:#466B52;border-radius:2px"></span><span style="flex:1;color:var(--ink-soft)">写作</span><span style="font-weight:600;font-family:var(--font-num)">30%</span></div><div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:10px;height:10px;background:#D88C4A;border-radius:2px"></span><span style="flex:1;color:var(--ink-soft)">跑步</span><span style="font-weight:600;font-family:var(--font-num)">25%</span></div><div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:10px;height:10px;background:#7B96A8;border-radius:2px"></span><span style="flex:1;color:var(--ink-soft)">阅读</span><span style="font-weight:600;font-family:var(--font-num)">20%</span></div><div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:10px;height:10px;background:#C8D5BB;border-radius:2px"></span><span style="flex:1;color:var(--ink-soft)">习惯打卡</span><span style="font-weight:600;font-family:var(--font-num)">15%</span></div><div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="width:10px;height:10px;background:#E5DED1;border-radius:2px"></span><span style="flex:1;color:var(--ink-soft)">心情/复盘</span><span style="font-weight:600;font-family:var(--font-num)">10%</span></div></div></div></div></div>
+  </div>
+  <div class="row row-2">
+    <div class="chart-card"><div class="chart-head"><div class="chart-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6" fill="#466B52"/><rect x="12" y="9" width="3" height="9" fill="#D88C4A"/><rect x="17" y="6" width="3" height="12" fill="#7B96A8"/></svg>季度对比 · 完成项数<span class="chart-source">来源：各季度完成记录</span></div></div><div class="chart-area" style="height:200px"><svg viewBox="0 0 500 200" preserveAspectRatio="none"><g stroke="#E8DEC9" stroke-dasharray="3 3"><line x1="40" y1="40" x2="480" y2="40"/><line x1="40" y1="90" x2="480" y2="90"/><line x1="40" y1="140" x2="480" y2="140"/></g><g font-size="11" fill="#5A4F44"><text x="100" y="180" text-anchor="middle">Q1 一月</text><text x="200" y="180" text-anchor="middle">Q2 四月</text><text x="300" y="180" text-anchor="middle">Q3 七月</text><text x="400" y="180" text-anchor="middle">Q4 十月</text></g><g><rect x="70" y="120" width="40" height="60" fill="#C8D5BB" rx="3"/><text x="90" y="113" text-anchor="middle" font-size="12" fill="#2F4A39" font-weight="600">18</text></g><g><rect x="170" y="80" width="40" height="100" fill="#466B52" rx="3"/><text x="190" y="73" text-anchor="middle" font-size="12" fill="#2F4A39" font-weight="600">28</text></g><g><rect x="270" y="55" width="40" height="125" fill="#D88C4A" rx="3"/><text x="290" y="48" text-anchor="middle" font-size="12" fill="#2F4A39" font-weight="600">34</text></g><g><rect x="370" y="125" width="40" height="55" fill="#E5DED1" rx="3"/><text x="390" y="118" text-anchor="middle" font-size="11" fill="#9C8E7E">待完成</text></g></svg></div></div>
+    <div class="chart-card"><div class="chart-head"><div class="chart-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>给你的建议</div></div><div class="advice-list"><div class="advice-item"><span class="advice-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 L15 8 L22 9 L17 14 L18 21 L12 18 L6 21 L7 14 L2 9 L9 8 Z"/></svg></span><div class="advice-body"><div class="advice-title">本周完成率持续提升</div><div class="advice-desc">已连续 4 周完成率高于 60%，建议将 Q3 末"散文初稿"里程碑提前一周冲刺，借助写作势能完成。</div></div></div><div class="advice-item amber"><span class="advice-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4 M12 16h.01"/></svg></span><div class="advice-body"><div class="advice-title">"钢琴入门"已停滞在第 12 天</div><div class="advice-desc">最近两次练习间隔超过 5 天，技能类学习需要高频重复。建议本周末至少安排 2 次 30 分钟练习。</div></div></div><div class="advice-item sky"><span class="advice-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg></span><div class="advice-body"><div class="advice-title">晨跑 + 阅读 是你的高效组合</div><div class="advice-desc">数据回溯显示：每周二、四完成晨跑后，紧接着的阅读专注时长平均提升 27%。建议固定这一天阅读。</div></div></div></div></div>
+  </div>
+</section>
+
+<section class="page hidden" id="page-album">
+  <div class="page-head"><div><h1 class="page-title">素材相册</h1><p class="page-sub">每张图背后，都有一段走过的路</p></div><div class="head-actions"><button class="btn">+ 上传图片</button><button class="btn btn-primary">按时间排序</button></div></div>
+  <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap"><span class="filter-chip active">全部 · 12</span><span class="filter-chip">晨跑路线 · 4</span><span class="filter-chip">写作场景 · 3</span><span class="filter-chip">里程碑 · 3</span><span class="filter-chip">日常随手 · 2</span></div>
+  <div class="album-grid" id="albumGrid"></div>
+</section>
+
+<section class="page hidden" id="page-today">
+  <div class="page-head"><div><h1 class="page-title">今日三件事</h1><p class="page-sub">每天完成三件最重要的事</p></div><div class="head-actions"><button class="btn btn-primary" onclick="openNewRecord('today')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>新增</button></div></div>
+  <div class="card"><div class="card-body" style="padding:18px 22px"><div class="today-list" id="todayFullList"></div></div></div>
+  <div class="row row-2" style="margin-top:18px">
+    <div class="card"><div class="card-head"><div class="card-title">今日心情曲线</div><span style="font-size:12px;color:var(--ink-soft)">每小时记录一次</span></div><div class="card-body"><div style="display:grid;grid-template-columns:repeat(8,1fr);gap:14px"><div style="text-align:center"><div style="width:40px;height:40px;background:#C8D5BB;border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2F4A39" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="10" r="1" fill="#2F4A39"/><circle cx="15" cy="10" r="1" fill="#2F4A39"/></svg></div><div style="font-size:10px;color:var(--ink-soft)">7:00 平静</div></div><div style="text-align:center"><div style="width:40px;height:40px;background:var(--amber-soft);border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8C5722" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="10" r="1" fill="#8C5722"/><circle cx="15" cy="10" r="1" fill="#8C5722"/></svg></div><div style="font-size:10px;color:var(--ink-soft)">9:00 振奋</div></div><div style="text-align:center"><div style="width:40px;height:40px;background:var(--moss-tint);border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2F4A39" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="10" r="1" fill="#2F4A39"/><circle cx="15" cy="10" r="1" fill="#2F4A39"/></svg></div><div style="font-size:10px;color:var(--ink-soft)">11:00 专注</div></div><div style="text-align:center"><div style="width:40px;height:40px;background:var(--moss-tint);border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2F4A39" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="10" r="1" fill="#2F4A39"/><circle cx="15" cy="10" r="1" fill="#2F4A39"/></svg></div><div style="font-size:10px;color:var(--ink-soft)">13:00 平静</div></div><div style="text-align:center"><div style="width:40px;height:40px;background:var(--amber-soft);border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8C5722" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="10" r="1" fill="#8C5722"/><circle cx="15" cy="10" r="1" fill="#8C5722"/></svg></div><div style="font-size:10px;color:var(--ink-soft)">15:00 疲惫</div></div><div style="text-align:center"><div style="width:40px;height:40px;background:var(--moss-tint);border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2F4A39" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="10" r="1" fill="#2F4A39"/><circle cx="15" cy="10" r="1" fill="#2F4A39"/></svg></div><div style="font-size:10px;color:var(--ink-soft)">17:00 专注</div></div><div style="text-align:center"><div style="width:40px;height:40px;background:var(--moss-soft);border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2F4A39" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="10" r="1" fill="#2F4A39"/><circle cx="15" cy="10" r="1" fill="#2F4A39"/></svg></div><div style="font-size:10px;color:var(--ink-soft)">19:00 满足</div></div><div style="text-align:center"><div style="width:40px;height:40px;background:var(--moss-deep);border-radius:50%;margin:0 auto 6px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8EFE3" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></div><div style="font-size:10px;color:var(--ink-soft)">22:00 安静</div></div></div></div></div>
+    <div class="card"><div class="card-head"><div class="card-title">关联素材</div><span class="card-extra">查看全部</span></div><div class="card-body"><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px" id="todayAlbum"></div></div></div>
+  </div>
+</section>
+
+<section class="page hidden" id="page-focus">
+  <div class="page-head"><div><h1 class="page-title">专注计时</h1><p class="page-sub">把时间还给重要的事</p></div><div class="head-actions"><button class="btn btn-primary" onclick="startFocus()">开始计时</button></div></div>
+  <div class="row row-2">
+    <div class="focus-card" style="padding:36px"><div class="focus-label">当前专注</div><div class="focus-time" style="font-size:64px"><strong>25</strong>:00</div><div class="focus-progress"><div class="focus-progress-bar" style="width:0%"></div></div><div class="focus-tags"><span class="focus-tag">写作 · 散文修改</span></div><div class="focus-actions"><button class="btn">暂停</button><button class="btn btn-amber" onclick="completeFocus()">完成</button></div></div>
+    <div class="card"><div class="card-head"><div class="card-title">本周专注时长</div></div><div class="card-body"><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;height:140px;align-items:end;margin:18px 0"><div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:24px;background:var(--moss-soft);border-radius:4px 4px 0 0;height:50px"></div><span style="font-size:10px;color:var(--ink-faint)">一</span><span style="font-size:10px;color:var(--ink-soft)">65'</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:24px;background:var(--moss-soft);border-radius:4px 4px 0 0;height:80px"></div><span style="font-size:10px;color:var(--ink-faint)">二</span><span style="font-size:10px;color:var(--ink-soft)">95'</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:24px;background:var(--moss);border-radius:4px 4px 0 0;height:105px"></div><span style="font-size:10px;color:var(--ink-faint)">三</span><span style="font-size:10px;color:var(--moss-deep);font-weight:600">125'</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:24px;background:var(--moss-soft);border-radius:4px 4px 0 0;height:60px"></div><span style="font-size:10px;color:var(--ink-faint)">四</span><span style="font-size:10px;color:var(--ink-soft)">72'</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:24px;background:var(--moss);border-radius:4px 4px 0 0;height:115px"></div><span style="font-size:10px;color:var(--ink-faint)">五</span><span style="font-size:10px;color:var(--moss-deep);font-weight:600">140'</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:24px;background:var(--moss-soft);border-radius:4px 4px 0 0;height:45px"></div><span style="font-size:10px;color:var(--ink-faint)">六</span><span style="font-size:10px;color:var(--ink-soft)">55'</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div style="width:24px;background:var(--amber);border-radius:4px 4px 0 0;height:65px"></div><span style="font-size:10px;color:var(--amber);font-weight:600">今日</span><span style="font-size:10px;color:var(--amber);font-weight:600">47'</span></div></div><div style="border-top:1px dashed var(--line-soft);padding-top:14px;display:flex;justify-content:space-between;font-size:12px"><span style="color:var(--ink-soft)">本周累计</span><span style="font-weight:700;font-family:var(--font-num);color:var(--moss-deep);font-size:18px">599 分钟</span></div></div></div>
+  </div>
+  <div class="card"><div class="card-head"><div class="card-title">最近专注记录</div></div><div class="card-body"><div class="record-list" id="focusList"></div></div></div>
+</section>
+
+<section class="page hidden" id="page-review">
+  <div class="page-head"><div><h1 class="page-title">成长日记</h1><p class="page-sub">给未来的自己，寄一封信</p></div><div class="head-actions"><button class="btn btn-primary" onclick="openNewRecord('diary')">+ 写一篇</button></div></div>
+  <div id="diaryList" style="display:flex;flex-direction:column;gap:16px"></div>
+</section>
+
+<section class="page hidden" id="page-settings">
+  <div class="page-head"><div><h1 class="page-title">设置</h1><p class="page-sub">属于你工作台的小角落</p></div></div>
+  <div class="setting-section"><div class="setting-head"><h3>个人资料</h3><p>头像、昵称、当前阶段</p></div><div class="setting-list"><div class="setting-item"><div class="setting-item-info"><div class="setting-item-title">昵称</div><div class="setting-item-desc">显示在顶栏与互动场景中</div></div><div class="setting-item-action"><input type="text" class="filter-input" value="林夏" style="width:140px"></div></div><div class="setting-item"><div class="setting-item-info"><div class="setting-item-title">当前阶段</div><div class="setting-item-desc">为统计提供时间范围</div></div><div class="setting-item-action"><select class="filter-input"><option>2026 · 完成首个半马</option><option>2025 · 写作启程年</option></select></div></div></div></div>
+  <div class="setting-section"><div class="setting-head"><h3>提醒与通知</h3><p>由打开页面看到，无需推送</p></div><div class="setting-list"><div class="setting-item"><div class="setting-item-info"><div class="setting-item-title">今日待办顶部置顶</div><div class="setting-item-desc">打开页面时把未完成项放在最显眼位置</div></div><div class="setting-item-action"><div class="switch on" onclick="this.classList.toggle('on')"></div></div></div><div class="setting-item"><div class="setting-item-info"><div class="setting-item-title">里程碑达成庆祝动效</div><div class="setting-item-desc">完成重要节点时显示专属动画</div></div><div class="setting-item-action"><div class="switch on" onclick="this.classList.toggle('on')"></div></div></div><div class="setting-item"><div class="setting-item-info"><div class="setting-item-title">每周日晚 21:00 自动弹出复盘</div><div class="setting-item-desc">提醒但不打扰，由你决定是否开启</div></div><div class="setting-item-action"><div class="switch" onclick="this.classList.toggle('on')"></div></div></div></div></div>
+  <div class="setting-section"><div class="setting-head"><h3>分类管理</h3><p>标签、状态、分类</p></div><div class="setting-list"><div class="setting-item"><div class="setting-item-info"><div class="setting-item-title">已使用分类</div><div class="setting-item-desc">年度目标 · 季度 · 月计划 · 周计划 · 今日 · 习惯 · 专注 · 心情 · 日记 · 复盘</div></div><div class="setting-item-action"><button class="btn btn-sm">+ 新增分类</button></div></div><div class="setting-item"><div class="setting-item-info"><div class="setting-item-title">常用标签</div><div class="setting-item-desc">晨跑 · 阅读 · 写作 · 散文 · 钢琴 · 复盘 · 家庭 · 通勤</div></div><div class="setting-item-action"><button class="btn btn-sm">管理标签</button></div></div></div></div>
+  <div class="setting-section"><div class="setting-head"><h3>数据 · 导出 / 导入 / 清空</h3><p>所有数据存于本机浏览器，不上传服务器</p></div><div class="setting-list"><div class="setting-item"><div class="setting-item-info"><div class="setting-item-title">导出 JSON 备份</div><div class="setting-item-desc">下载完整数据快照，建议每月一次</div></div><div class="setting-item-action"><button class="btn" onclick="exportData()">导出</button></div></div><div class="setting-item"><div class="setting-item-info"><div class="setting-item-title">从备份恢复</div><div class="setting-item-desc">导入后自动覆盖现有数据</div></div><div class="setting-item-action"><button class="btn" onclick="document.getElementById('importFile').click()">选择文件</button></div></div><div class="setting-item"><div class="setting-item-info"><div class="setting-item-title">本地存储占用</div><div class="setting-item-desc" id="storageDesc">约 124 KB · 30 条记录 · 12 张图片</div></div><div class="setting-item-action"><span style="font-size:12px;color:var(--moss)">充足</span></div></div><div class="setting-item"><div class="setting-item-info"><div class="setting-item-title" style="color:var(--ember)">清空所有示例数据</div><div class="setting-item-desc">不可恢复，请先导出备份</div></div><div class="setting-item-action"><button class="btn btn-danger" onclick="confirmClearAll()">清空</button></div></div></div></div>
+  <div class="setting-section"><div class="setting-head"><h3>关于</h3><p>远行 · 个人成长与目标管理工作台</p></div><div class="setting-list"><div class="setting-item"><div class="setting-item-info"><div class="setting-item-title">版本</div><div class="setting-item-desc">v1.0.0 · 2026年9月</div></div></div><div class="setting-item"><div class="setting-item-info"><div class="setting-item-title">品牌理念</div><div class="setting-item-desc">把每一次微小前进，留在看得见的路上。</div></div></div></div></div>
+</section>
+
+<section class="page hidden" id="page-detail">
+  <div class="page-head"><div><h1 class="page-title" id="detailCrumb">详情</h1><p class="page-sub" id="detailCrumbSub"></p></div><div class="head-actions"><button class="btn" onclick="navigateTo('library')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>返回</button><button class="btn btn-danger" onclick="deleteCurrentDetail()">删除</button><button class="btn btn-primary" onclick="editCurrentDetail()">编辑</button></div></div>
+  <div class="detail-wrap">
+    <div class="detail-main">
+      <div class="detail-cover" id="detailCover"></div>
+      <div class="detail-body">
+        <div class="detail-meta" id="detailMeta"></div>
+        <h2 class="detail-title" id="detailTitle">记录详情</h2>
+        <div class="detail-tags" id="detailTags"></div>
+        <div class="detail-info"><div class="detail-info-item"><div class="info-label">开始日期</div><div class="info-value" id="detailStartDate">-</div></div><div class="detail-info-item"><div class="info-label">计划完成</div><div class="info-value" id="detailPlanDate">-</div></div><div class="detail-info-item"><div class="info-label">状态</div><div class="info-value" id="detailStatus">-</div></div><div class="detail-info-item"><div class="info-label">关键数值</div><div class="info-value" id="detailMetric">-</div></div></div>
+        <div class="detail-section"><div class="detail-section-title">详细描述</div><div class="detail-text" id="detailDesc">-</div></div>
+        <div class="detail-section"><div class="detail-section-title">关联素材</div><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px" id="detailAlbum"></div></div>
+        <div class="detail-section"><div class="detail-section-title">关联记录</div><div class="detail-relations" id="detailRelations"></div></div>
+      </div>
+    </div>
+    <div class="detail-side">
+      <div class="detail-side-card"><div style="font-size:13px;font-weight:600;margin-bottom:14px">进度</div><div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><div style="flex:1;height:8px;background:var(--moss-tint);border-radius:4px;overflow:hidden"><div id="detailProgressBar" style="height:100%;background:linear-gradient(90deg,var(--moss),var(--amber));width:0%;border-radius:4px;transition:width .5s"></div></div><span id="detailProgressText" style="font-size:20px;font-weight:700;font-family:var(--font-num);color:var(--moss-deep)">0%</span></div><div style="font-size:11px;color:var(--ink-soft);margin-bottom:18px" id="detailProgressNote">-</div><div style="font-size:13px;font-weight:600;margin-bottom:10px">关键字段</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px" id="detailStats"><div style="padding:10px;background:var(--moss-tint);border-radius:8px"><div style="color:var(--ink-faint);font-size:10px">地点</div><div id="detailLoc" style="font-size:13px;font-weight:600;color:var(--moss-deep);font-family:var(--font-zh)">-</div></div><div style="padding:10px;background:var(--amber-soft);border-radius:8px"><div style="color:var(--ink-faint);font-size:10px">关联数</div><div id="detailRelCount" style="font-size:18px;font-weight:700;color:#8C5722;font-family:var(--font-num)">-</div></div><div style="padding:10px;background:#DDE7ED;border-radius:8px"><div style="color:var(--ink-faint);font-size:10px">类型</div><div id="detailTypeName" style="font-size:14px;font-weight:700;color:#3E5C6E">-</div></div><div style="padding:10px;background:#F0D8D2;border-radius:8px"><div style="color:var(--ink-faint);font-size:10px">下次提醒</div><div id="detailNext" style="font-size:13px;font-weight:600;color:#9E3D2A;font-family:var(--font-num)">-</div></div></div></div>
+      <div class="detail-side-card"><div style="font-size:13px;font-weight:600;margin-bottom:14px">活动记录</div><div class="activity-log" id="detailActivity"></div></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<nav class="mobile-nav">
+  <div class="mobile-nav-item active" data-page="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12 L12 4 L21 12 M5 10 V20 H10 V14 H14 V20 H19 V10"/></svg>首页</div>
+  <div class="mobile-nav-item" data-page="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="13" width="7" height="7" rx="1"/></svg>记录</div>
+  <div class="mobile-nav-item" data-page="calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10 H21 M8 3 V7 M16 3 V7"/></svg>日历</div>
+  <div class="mobile-nav-item" data-page="insights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 20 V8 M9 20 V4 M15 20 V12 M21 20 V6"/></svg>洞察</div>
+  <div class="mobile-nav-item" data-page="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>我的</div>
+</nav>
+<div class="fab" onclick="openNewRecord()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+</div>
+
+<!-- Modal -->
+<div class="modal-mask" id="recordModal">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="recordModalTitle">新增记录</div><div class="modal-close" onclick="closeModal('recordModal')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></div></div>
+    <div class="modal-body">
+      <div id="recordStep1">
+        <div class="form-group"><div class="form-label">选择类型<span class="req">*</span></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="typeSelector"><div class="filter-chip active" data-type="goal" style="text-align:center;padding:14px 8px">🎯 年度目标</div><div class="filter-chip" data-type="plan" style="text-align:center;padding:14px 8px">📅 计划</div><div class="filter-chip" data-type="today" style="text-align:center;padding:14px 8px">⭐ 今日</div><div class="filter-chip" data-type="habit" style="text-align:center;padding:14px 8px">🌱 习惯</div><div class="filter-chip" data-type="focus" style="text-align:center;padding:14px 8px">⏱ 专注</div><div class="filter-chip" data-type="mood" style="text-align:center;padding:14px 8px">💭 心情</div><div class="filter-chip" data-type="diary" style="text-align:center;padding:14px 8px">📖 日记</div><div class="filter-chip" data-type="review" style="text-align:center;padding:14px 8px">🔍 复盘</div><div class="filter-chip" data-type="milestone" style="text-align:center;padding:14px 8px">🏔 里程碑</div></div></div>
+        <div class="form-group"><div class="form-label">标题<span class="req">*</span></div><input type="text" class="form-input" id="recTitle" placeholder="为这次记录起个名字"><div class="form-hint">用具体的名字，例如"晨跑 8 公里 · 滨江绿道"而非"跑步"</div></div>
+      </div>
+      <div id="recordStep2" class="hidden">
+        <div class="form-row"><div class="form-group"><div class="form-label">日期<span class="req">*</span></div><input type="date" class="form-input" id="recDate"></div><div class="form-group"><div class="form-label">下一次提醒</div><input type="date" class="form-input" id="recNextDate"><div class="form-hint">留空则不提醒</div></div></div>
+        <div class="form-group"><div class="form-label">状态</div><select class="form-select" id="recStatus"><option value="todo">待开始</option><option value="doing" selected>进行中</option><option value="done">已完成</option><option value="paused">暂停</option></select></div>
+        <div class="form-group"><div class="form-label">标签（用空格分隔）</div><input type="text" class="form-input" id="recTags" placeholder="例如：晨跑 滨江 训练"></div>
+        <div class="form-group"><div class="form-label">地点 / 场景</div><input type="text" class="form-input" id="recLocation" placeholder="滨江绿道 · 西湖内圈 · 书房"></div>
+        <div class="form-group"><div class="form-label">关键数值（场景专属）</div><input type="text" class="form-input" id="recMetric" placeholder="例如：8 公里 · 配速 6'05 · 心率 152"></div>
+        <div class="form-group"><div class="form-label">详细描述</div><textarea class="form-textarea" id="recDesc" placeholder="写下你看到、感受到、想到的……"></textarea></div>
+      </div>
+      <div id="recordStep3" class="hidden">
+        <div class="form-group"><div class="form-label">封面 / 配图</div><div style="border:2px dashed var(--line);border-radius:var(--r-md);padding:24px;text-align:center;background:#FAF6EC;cursor:pointer" onclick="document.getElementById('recImage').click()"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--ink-faint);margin-bottom:8px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15 L16 10 L5 19"/></svg><div style="font-size:13px;color:var(--ink-soft)">点击上传图片，或拖拽至此</div><div style="font-size:11px;color:var(--ink-faint);margin-top:4px">支持 JPG / PNG · 单张最大 5MB</div><input type="file" id="recImage" accept="image/*" style="display:none" onchange="previewImage(this)"></div><div id="imagePreview" style="margin-top:10px"></div></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:14px;border-top:1px solid var(--line-soft)"><div style="display:flex;gap:6px"><span style="width:24px;height:3px;background:var(--moss);border-radius:2px" id="stepBar1"></span><span style="width:24px;height:3px;background:var(--line);border-radius:2px" id="stepBar2"></span><span style="width:24px;height:3px;background:var(--line);border-radius:2px" id="stepBar3"></span></div><div style="font-size:11px;color:var(--ink-faint)" id="stepLabel">第 1 步 / 共 3 步 · 类型与标题</div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('recordModal')">取消</button><button class="btn" id="prevStepBtn" onclick="prevStep()">上一步</button><button class="btn btn-primary" id="nextStepBtn" onclick="nextStep()">下一步</button><button class="btn btn-primary hidden" id="saveBtn" onclick="saveRecord()">保存记录</button></div>
+  </div>
+</div>
+
+<div class="drawer-mask" id="drawerMask" onclick="closeDrawer()"></div>
+<div class="drawer" id="quickDrawer"><div style="padding:20px 22px;border-bottom:1px solid var(--line-soft);display:flex;justify-content:space-between;align-items:center"><div style="font-size:15px;font-weight:600">快速操作</div><div class="modal-close" onclick="closeDrawer()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></div></div><div style="padding:18px 22px;flex:1;overflow-y:auto" id="drawerContent"></div></div>
+
+<div class="lightbox-mask" id="lightbox" onclick="closeLightbox()"><div class="lightbox" onclick="event.stopPropagation()"><div class="lightbox-close" onclick="closeLightbox()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></div><div id="lightboxContent"></div><div class="lightbox-cap" id="lightboxCap"></div></div></div>
+
+<div class="toast" id="toast"></div>
+<div class="celebrate" id="celebrate"></div>
+
+<!-- 自定义确认弹窗 -->
+<div class="confirm-mask" id="confirmMask">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4 M12 16h.01"/></svg></div>
+    <div class="confirm-title" id="confirmTitle">确认操作</div>
+    <div class="confirm-msg" id="confirmMsg">是否继续？</div>
+    <div class="confirm-detail" id="confirmDetail"></div>
+    <div class="confirm-actions">
+      <button class="btn" id="confirmCancel">再想想</button>
+      <button class="btn btn-danger" id="confirmOk">确认</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'wb_yuanxing_workspace_v1';
+const TODAY = new Date('2026-09-12');
+
+const state = {
+  records: [], currentPage: 'home',
+  libraryType: 'all', libraryFilter: 'all', librarySort: 'date-desc', libraryTagSearch: '',
+  calMonth: TODAY.getMonth(), calYear: TODAY.getFullYear(),
+  calSelected: new Date(TODAY),
+  recordStep: 1, recordType: 'goal', editingId: null, currentDetailId: null
+};
+
+const SCENES = {
+  running_detail: '<svg viewBox="0 0 800 320" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="rdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2D9BC"/><stop offset="1" stop-color="#D88C4A" stop-opacity=".4"/></linearGradient></defs><rect width="800" height="320" fill="url(#rdg)"/><circle cx="700" cy="80" r="40" fill="#FFE4B5"/><circle cx="700" cy="80" r="28" fill="#D88C4A"/><path d="M0 200 L120 160 L240 190 L360 150 L480 175 L600 145 L720 165 L800 155 L800 320 L0 320 Z" fill="#466B52" opacity=".5"/><path d="M0 240 L100 200 L200 220 L300 190 L420 215 L540 195 L660 210 L800 195 L800 320 L0 320 Z" fill="#3A5847" opacity=".7"/><path d="M0 290 Q200 270 400 280 T800 270" stroke="#E8EFE3" stroke-width="3" fill="none" stroke-dasharray="8 6"/><g transform="translate(380,250)"><circle cx="0" cy="-12" r="6" fill="#5A4F44"/><path d="M0 -6 L-3 18 M-3 0 L-15 5 M-3 0 L8 -2 M-3 18 L-12 30 M-3 18 L8 25" stroke="#B8503C" stroke-width="3" stroke-linecap="round" fill="none"/></g><text x="50" y="60" font-size="13" fill="#5A4F44" font-weight="600">滨江绿道 · 2026.09.10 · 06:42</text></svg>',
+  album_morning: '<svg viewBox="0 0 300 200"><defs><linearGradient id="am" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2D9BC"/><stop offset="1" stop-color="#D88C4A" stop-opacity=".5"/></linearGradient></defs><rect width="300" height="200" fill="url(#am)"/><circle cx="240" cy="60" r="22" fill="#FFE4B5"/><path d="M0 160 L80 130 L150 150 L220 120 L300 140 L300 200 L0 200 Z" fill="#466B52" opacity=".4"/><path d="M0 180 L60 155 L130 170 L210 145 L300 165 L300 200 L0 200 Z" fill="#3A5847" opacity=".6"/><circle cx="100" cy="135" r="4" fill="#5A4F44"/><path d="M100 139 L98 155 M100 145 L92 150 M100 145 L108 150 M98 155 L94 165 M98 155 L102 165" stroke="#5A4F44" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
+  album_writing: '<svg viewBox="0 0 300 200"><rect width="300" height="200" fill="#3A5847"/><rect x="40" y="60" width="220" height="120" rx="6" fill="#F5EFE2"/><rect x="50" y="70" width="200" height="100" rx="3" fill="#fff"/><line x1="65" y1="90" x2="235" y2="90" stroke="#C8D5BB" stroke-width="1.5"/><line x1="65" y1="105" x2="225" y2="105" stroke="#C8D5BB" stroke-width="1.5"/><line x1="65" y1="120" x2="230" y2="120" stroke="#C8D5BB" stroke-width="1.5"/><line x1="65" y1="135" x2="220" y2="135" stroke="#C8D5BB" stroke-width="1.5"/><line x1="65" y1="150" x2="215" y2="150" stroke="#C8D5BB" stroke-width="1.5"/><path d="M200 160 L240 130 L250 140 L210 170 Z" fill="#D88C4A"/></svg>',
+  album_piano: '<svg viewBox="0 0 300 200"><rect width="300" height="200" fill="#5A4A33"/><rect x="20" y="50" width="260" height="130" rx="4" fill="#2C2620"/><rect x="30" y="60" width="240" height="100" fill="#fff"/><text x="160" y="40" font-size="20" fill="#D88C4A">♪</text></svg>',
+  album_food: '<svg viewBox="0 0 300 200"><rect width="300" height="200" fill="#F5EFE2"/><circle cx="150" cy="100" r="60" fill="#fff" stroke="#5A4F44" stroke-width="2"/><circle cx="150" cy="100" r="48" fill="#E8DEC9"/><circle cx="135" cy="90" r="6" fill="#D88C4A"/><circle cx="160" cy="95" r="5" fill="#466B52"/><circle cx="150" cy="110" r="5" fill="#B8503C"/></svg>',
+  album_book: '<svg viewBox="0 0 300 200"><rect width="300" height="200" fill="#E8DEC9"/><rect x="0" y="160" width="300" height="6" fill="#5A4F44"/>'+[40,80,120,160,200,240].map((x,i)=>'<rect x="'+(x-15)+'" y="'+(100-i*4)+'" width="30" height="'+(60+i*4)+'" fill="'+['#B8503C','#466B52','#D88C4A','#7B96A8','#5A4F44','#9C8E7E'][i]+'" rx="1"/>').join('')+'</svg>',
+  album_park: '<svg viewBox="0 0 300 200"><defs><linearGradient id="pk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7B9485"/><stop offset="1" stop-color="#C8D5BB"/></linearGradient></defs><rect width="300" height="200" fill="url(#pk)"/><rect x="50" y="120" width="6" height="50" fill="#5A4A33"/><circle cx="53" cy="115" r="25" fill="#466B52"/><rect x="240" y="125" width="5" height="45" fill="#5A4A33"/><circle cx="242" cy="120" r="22" fill="#3A5847"/></svg>',
+  album_lake: '<svg viewBox="0 0 300 200"><defs><linearGradient id="lk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7B9485"/><stop offset=".5" stop-color="#C8D5BB"/><stop offset="1" stop-color="#5A7A65"/></linearGradient></defs><rect width="300" height="200" fill="url(#lk)"/><path d="M0 90 L60 60 L100 80 L150 50 L200 70 L260 55 L300 70 L300 100 L0 100 Z" fill="#466B52" opacity=".4"/><rect x="220" y="80" width="20" height="20" fill="#B8503C"/><polygon points="215,80 245,80 230,68" fill="#5A4A33"/></svg>',
+  album_desk: '<svg viewBox="0 0 300 200"><rect width="300" height="200" fill="#F5EFE2"/><rect x="0" y="140" width="300" height="60" fill="#5A4F44"/><rect x="40" y="100" width="120" height="50" rx="3" fill="#466B52"/><rect x="45" y="105" width="110" height="40" fill="#fff"/><circle cx="260" cy="120" r="22" fill="#D88C4A"/><circle cx="260" cy="120" r="18" fill="#F5EFE2"/></svg>',
+  album_mountain: '<svg viewBox="0 0 300 200"><defs><linearGradient id="mt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F2D9BC"/><stop offset="1" stop-color="#D88C4A" stop-opacity=".3"/></linearGradient></defs><rect width="300" height="200" fill="url(#mt)"/><path d="M0 130 L60 80 L120 110 L180 60 L240 100 L300 80 L300 200 L0 200 Z" fill="#466B52" opacity=".5"/><path d="M0 160 L60 120 L130 145 L210 110 L300 140 L300 200 L0 200 Z" fill="#3A5847" opacity=".6"/><circle cx="230" cy="50" r="18" fill="#FFE4B5"/></svg>',
+  album_music: '<svg viewBox="0 0 300 200"><rect width="300" height="200" fill="#E8DEC9"/><circle cx="150" cy="100" r="60" fill="none" stroke="#5A4F44" stroke-width="3"/><circle cx="150" cy="100" r="8" fill="#5A4F44"/></svg>'
+};
+
+const ALBUM_DATA = [
+  {name:'滨江绿道 · 晨光',meta:'2026.09.10',tag:'晨跑路线',cover:'album_morning',rid:'r9'},
+  {name:'书房 · 散文手稿',meta:'2026.09.05',tag:'写作场景',cover:'album_writing',rid:'r24'},
+  {name:'南山咖啡馆',meta:'2026.09.05',tag:'写作场景',cover:'album_food',rid:'r24'},
+  {name:'首个10公里 · 滨江',meta:'2026.07.14',tag:'里程碑',cover:'album_morning',rid:'r28'},
+  {name:'书房一角',meta:'2026.09.08',tag:'日常随手',cover:'album_book',rid:'r13'},
+  {name:'钢琴课 · 银泰',meta:'2026.09.01',tag:'里程碑',cover:'album_piano',rid:'r4'},
+  {name:'西湖内圈 · 训练',meta:'2026.08.18',tag:'晨跑路线',cover:'album_lake',rid:'r1'},
+  {name:'浙东大峡谷',meta:'2026.06.20',tag:'里程碑',cover:'album_mountain',rid:'r29'},
+  {name:'公园 · 清晨',meta:'2026.09.02',tag:'日常随手',cover:'album_park',rid:'r12'},
+  {name:'通勤地铁 · 阅读',meta:'2026.09.06',tag:'日常随手',cover:'album_desk',rid:'r15'},
+  {name:'西山 · 山顶远眺',meta:'2026.09.08',tag:'晨跑路线',cover:'album_mountain',rid:'r25'},
+  {name:'音乐教室',meta:'2026.09.01',tag:'里程碑',cover:'album_music',rid:'r4'}
+];
+
+const SEED = [
+  {id:'r1',type:'goal',title:'2026 首个全程马拉松',date:'2026-01-12',nextDate:'2026-11-22',status:'doing',progress:68,tags:['年度','身体健康','杭州马拉松'],location:'滨江绿道',metric:'42.195 公里 · 配速 5\'50"',desc:'从去年 11 月的第一个 3 公里开始，目标 11 月 22 日完成首个全程马拉松。\n\n训练日志：\n• 7月14日：滨江绿道晨跑 10 公里，配速 6\'12"，心率 152\n• 8月18日：西湖内圈 12 公里，配速 6\'05"，达成月度目标\n• 9月5日：长距离 LSD 训练 16 公里，配速 6\'30"，无伤痛',cover:'running_detail',relations:['r4','r9','r12']},
+  {id:'r2',type:'goal',title:'出版散文集《远山》',date:'2026-02-01',nextDate:'2026-12-31',status:'doing',progress:42,tags:['年度','写作','创作'],location:'书房 · 桂花路 12 号',metric:'已写 4.2 万字 · 12 篇',desc:'用两年时间把过去十年的远行、所见所感写成一本散文集。',cover:'album_writing',relations:['r5','r10']},
+  {id:'r3',type:'goal',title:'读完 50 本书',date:'2026-01-01',nextDate:'2026-12-31',status:'doing',progress:54,tags:['年度','阅读','认知'],location:'书房 · 通勤地铁',metric:'已完成 27 本',desc:'平均每周一本，涵盖文学、社科、哲学三类。',cover:'album_book',relations:['r6']},
+  {id:'r4',type:'goal',title:'钢琴入门到演奏级',date:'2026-01-01',nextDate:'2027-06-30',status:'paused',progress:18,tags:['年度','音乐','学习'],location:'音乐教室 · 银泰 4F',metric:'拜厄 · 已到 78 首',desc:'每周两次课，目标一年内能流畅演奏《致爱丽丝》。',cover:'album_piano',relations:[]},
+  {id:'r5',type:'plan',title:'9月长跑训练计划',date:'2026-09-01',nextDate:'2026-09-30',status:'doing',progress:67,tags:['月计划','跑步'],location:'滨江绿道',metric:'本月目标 120 公里',desc:'每周三次长距离 + 两次轻松跑，逐步提升至 21 公里。',cover:'album_morning',relations:['r1']},
+  {id:'r6',type:'plan',title:'本周阅读：《远山》+《山之四季》',date:'2026-09-07',nextDate:'2026-09-13',status:'doing',progress:60,tags:['周计划','阅读'],location:'书房',metric:'已读 60%',desc:'配合写作积累，亲近自然写作类书籍。',cover:'album_book',relations:['r3']},
+  {id:'r7',type:'plan',title:'Q3 季度复盘',date:'2026-09-25',nextDate:'2026-09-30',status:'todo',progress:0,tags:['复盘','季度'],location:'书房',metric:'待完成',desc:'三季度跑量、写作量、阅读量三项总结。',cover:'',relations:[]},
+  {id:'r8',type:'plan',title:'散文第三章修改',date:'2026-09-10',nextDate:'2026-09-15',status:'doing',progress:75,tags:['写作','章节'],location:'书房',metric:'已修改 3200 字',desc:'根据编辑意见重点调整第三章节情感表达。',cover:'album_writing',relations:['r2']},
+  {id:'r9',type:'today',title:'晨跑 8 公里 · 滨江绿道',date:'2026-09-12',nextDate:'',status:'done',progress:100,tags:['晨跑','跑步'],location:'滨江绿道',metric:'配速 6\'05" · 心率 148',desc:'晨雾未散，沿钱塘江顺风跑了 8 公里。',cover:'album_morning',relations:['r1','r5']},
+  {id:'r10',type:'today',title:'散文《远山》第三章精修',date:'2026-09-12',nextDate:'',status:'doing',progress:60,tags:['写作','散文'],location:'书房',metric:'已专注 2 小时',desc:'重点修改"竹林七贤"段落，调整节奏。',cover:'album_writing',relations:['r2']},
+  {id:'r11',type:'today',title:'阅读《山之四季》第一章',date:'2026-09-12',nextDate:'',status:'todo',progress:0,tags:['阅读'],location:'书房',metric:'目标 30 页',desc:'晨间阅读，配合写作。',cover:'album_book',relations:['r3']},
+  {id:'r12',type:'habit',title:'晨跑习惯',date:'2026-01-01',nextDate:'',status:'doing',progress:87,tags:['习惯','跑步'],location:'滨江绿道',metric:'连续 87 天',desc:'每天 6:30 出门，无论公里数多少。',cover:'album_morning',relations:['r1']},
+  {id:'r13',type:'habit',title:'每晚写日记',date:'2026-01-01',nextDate:'',status:'doing',progress:65,tags:['习惯','写作'],location:'书房',metric:'连续 65 天',desc:'哪怕一句也好，记录当天的关键感受。',cover:'album_writing',relations:[]},
+  {id:'r14',type:'habit',title:'冥想 10 分钟',date:'2026-03-01',nextDate:'',status:'doing',progress:42,tags:['习惯','正念'],location:'卧室',metric:'连续 42 天',desc:'晨间或睡前十分钟静坐。',cover:'',relations:[]},
+  {id:'r15',type:'habit',title:'每日阅读 30 分钟',date:'2026-01-01',nextDate:'',status:'doing',progress:54,tags:['习惯','阅读'],location:'书房',metric:'平均 45 分钟/天',desc:'通勤路上读电子书，睡前读纸质书。',cover:'album_book',relations:['r3']},
+  {id:'r16',type:'habit',title:'每周一次咖啡馆写作',date:'2026-04-01',nextDate:'',status:'doing',progress:23,tags:['习惯','写作'],location:'南山咖啡馆',metric:'本月 2 次',desc:'换个环境，每周固定一次。',cover:'album_food',relations:[]},
+  {id:'r17',type:'focus',title:'散文修改 · 第二章',date:'2026-09-11',nextDate:'',status:'done',progress:100,tags:['专注','写作'],location:'书房',metric:'90 分钟',desc:'完成第二章结尾段落的修改。',cover:'album_writing',relations:['r2']},
+  {id:'r18',type:'focus',title:'月度计划制定',date:'2026-09-08',nextDate:'',status:'done',progress:100,tags:['专注','规划'],location:'书房',metric:'45 分钟',desc:'梳理 9 月的四项关键任务。',cover:'album_desk',relations:[]},
+  {id:'r19',type:'focus',title:'晨跑笔记',date:'2026-09-12',nextDate:'',status:'done',progress:100,tags:['专注','跑步'],location:'书房',metric:'15 分钟',desc:'记录今天跑步的感受。',cover:'album_morning',relations:['r12']},
+  {id:'r20',type:'focus',title:'阅读《山之四季》',date:'2026-09-10',nextDate:'',status:'done',progress:100,tags:['专注','阅读'],location:'通勤地铁',metric:'30 分钟',desc:'读完了第三章。',cover:'album_book',relations:['r6']},
+  {id:'r21',type:'mood',title:'平静 · 晨光正好',date:'2026-09-12',nextDate:'',status:'doing',progress:0,tags:['心情','晨间'],location:'滨江绿道',metric:'7 分',desc:'跑完 8 公里，看见钱塘江上有雾，心情平静。',cover:'album_morning',relations:[]},
+  {id:'r22',type:'mood',title:'专注 · 写作时',date:'2026-09-11',nextDate:'',status:'doing',progress:0,tags:['心情','写作'],location:'书房',metric:'8 分',desc:'散文修改顺利，沉浸感很强。',cover:'album_writing',relations:[]},
+  {id:'r23',type:'diary',title:'8月复盘：跑步里程突破 100',date:'2026-08-31',nextDate:'',status:'done',progress:100,tags:['日记','复盘','跑步'],location:'书房',metric:'120 公里',desc:'8 月是真正意义上的"跑起来"的一个月。每月跑量从年初的 50 公里提升到 120 公里，配速从 7\'15" 提升到 5\'50"。\n\n最大收获：学会了"慢慢来"，每天 6:30 出门，无论公里数多少，这本身就是胜利。\n\n下月重点：\n• 完成首个 21 公里长距离\n• 持续读书 4 本\n• 钢琴练习频率从每周 1 次提到 2 次',cover:'album_morning',relations:['r1','r12']},
+  {id:'r24',type:'diary',title:'写作月记：散文《远山》第三章',date:'2026-09-05',nextDate:'',status:'done',progress:100,tags:['日记','写作'],location:'南山咖啡馆',metric:'4500 字',desc:'这是最难的一章。写的是去年夏天在浙东大峡谷的一次远足，竹林七贤的典故穿插其中。\n\n关键发现：写作不是"想到什么写什么"，而是"先让自己回到那个场景"。今天下午在咖啡馆，听着窗外的雨声和古典乐，突然就回到了那个清晨。\n\n下一步：把今天写的发给编辑老师审阅。',cover:'album_writing',relations:['r2']},
+  {id:'r25',type:'diary',title:'周日随笔：山顶的小庙',date:'2026-09-08',nextDate:'',status:'done',progress:100,tags:['日记','散文'],location:'书房',metric:'1200 字',desc:'登顶时看到的小庙，香炉里的烟很淡。没有上香，只坐了一会儿，看云从山下慢慢上来。\n\n下山时遇到一位老伯，他说这条路他走了 30 年。我问他：走这路最久的意义是什么？他说："不上来，就不知道山下面的人有多忙。"',cover:'album_park',relations:[]},
+  {id:'r26',type:'review',title:'8月复盘报告',date:'2026-09-01',nextDate:'',status:'done',progress:100,tags:['复盘','月度'],location:'书房',metric:'已完成',desc:'完成率 67%，较 7 月提升 12%。\n\n亮点：\n• 跑步月里程首次突破 100 公里\n• 散文第二章初稿完成\n• 阅读 4 本\n\n不足：\n• 钢琴练习频率不足\n• 月末有一周跑步缺席\n\n9 月重点：\n• 完成首个半马训练\n• 散文第三章精修\n• 持续晨跑习惯',cover:'album_morning',relations:['r1','r2']},
+  {id:'r27',type:'review',title:'Q2 季度复盘',date:'2026-07-05',nextDate:'',status:'done',progress:100,tags:['复盘','季度'],location:'书房',metric:'已完成',desc:'Q2 是建立节奏的季度。\n\n完成情况：\n• 年度目标 1: 68% → 进行中\n• 年度目标 2: 42% → 进行中\n• 年度目标 3: 54% → 进行中\n\n关键转折：5 月参加晨光跑团后，跑步彻底稳定下来。\n\nQ3 目标：\n• 完成首个 10 公里\n• 散文开篇完成\n• 阅读 15 本',cover:'album_desk',relations:[]},
+  {id:'r28',type:'milestone',title:'首个 10 公里',date:'2026-07-14',nextDate:'',status:'done',progress:100,tags:['里程碑','跑步'],location:'滨江绿道',metric:'10.05 公里',desc:'人生中第一个完整 10 公里，配速 6\'12"，心率 152。无伤痛。',cover:'album_morning',relations:['r1','r12']},
+  {id:'r29',type:'milestone',title:'散文开篇完成',date:'2026-06-20',nextDate:'',status:'done',progress:100,tags:['里程碑','写作'],location:'南山咖啡馆',metric:'2800 字',desc:'拖了半年的开篇，今天写完了。',cover:'album_writing',relations:['r2']},
+  {id:'r30',type:'milestone',title:'首跑 5 公里',date:'2026-04-12',nextDate:'',status:'done',progress:100,tags:['里程碑','跑步'],location:'小区周边',metric:'5.20 公里',desc:'第一次跑完 5 公里，没走路。',cover:'album_mountain',relations:['r1','r12']}
+];
+
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const fmt = d => { if(!d) return '-'; const dt = new Date(d); return dt.getFullYear()+'年'+(dt.getMonth()+1)+'月'+dt.getDate()+'日'; };
+const fmtM = d => { if(!d) return '-'; const dt = new Date(d); return (dt.getMonth()+1)+'月'+dt.getDate()+'日'; };
+const fmtW = d => { if(!d) return '-'; const dt = new Date(d); const w = ['日','一','二','三','四','五','六'][dt.getDay()]; return (dt.getMonth()+1)+'月'+dt.getDate()+'日 · 周'+w; };
+const relDay = d => { if(!d) return '-'; const diff = Math.round((new Date(d)-TODAY)/86400000); if(diff===0) return '今天'; if(diff===1) return '明天'; if(diff===-1) return '昨天'; if(diff>0) return diff+'天后'; return (-diff)+'天前'; };
+const TYPE = { goal:'年度目标', plan:'计划', today:'今日', habit:'习惯', focus:'专注', mood:'心情', diary:'日记', review:'复盘', milestone:'里程碑' };
+
+function loadData(){ try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw){ state.records = JSON.parse(raw); return; } }catch(e){} state.records = SEED.slice(); saveData(); }
+function saveData(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.records)); }
+
+function toast(msg, type=''){ const t = $('#toast'); t.textContent = msg; t.className = 'toast show ' + type; setTimeout(()=>{ t.className = 'toast ' + type; }, 2200); }
+
+function celebrate(){ const c = $('#celebrate'); c.innerHTML = ''; c.classList.add('show'); const colors = ['#466B52','#D88C4A','#C8D5BB','#7B96A8','#F2D9BC','#B8503C']; for(let i=0;i<36;i++){ const el = document.createElement('div'); el.className = 'celebrate-burst'; const a = (Math.PI*2*i)/36; const dist = 80 + Math.random()*120; el.style.left='50%'; el.style.top='40%'; el.style.background = colors[i%colors.length]; el.style.setProperty('--dx', Math.cos(a)*dist+'px'); el.style.setProperty('--dy', Math.sin(a)*dist+'px'); c.appendChild(el); } setTimeout(()=>c.classList.remove('show'), 1100); }
+
+function refreshAll(){
+  updateBadges();
+  if(state.currentPage === 'home') renderHome();
+  else if(state.currentPage === 'library') renderLibrary();
+  else if(state.currentPage === 'calendar') { renderCalendar(); renderTimeline(); }
+  else if(state.currentPage === 'habit') renderHabit();
+  else if(state.currentPage === 'album') renderAlbum();
+  else if(state.currentPage === 'today') renderToday();
+  else if(state.currentPage === 'focus') renderFocus();
+  else if(state.currentPage === 'review') renderDiary();
+  else if(state.currentPage === 'detail') { /* 详情独立渲染 */ }
+}
+
+function updateBadges(){
+  const todayItems = state.records.filter(r => r.type === 'today' && r.status !== 'done');
+  $('#todayBadge').textContent = todayItems.length;
+}
+
+function renderHome(){
+  const todayItems = state.records.filter(r => r.type === 'today').slice(0,4);
+  $('#homeTodayList').innerHTML = todayItems.map(r => todayItemHTML(r)).join('') || '<div style="text-align:center;padding:20px;color:var(--ink-faint);font-size:13px">今日还没有安排，去添加几件吧 ✨</div>';
+  const habits = state.records.filter(r => r.type === 'habit').slice(0,5);
+  $('#homeHabitGrid').innerHTML = habits.map(h => {
+    const numMatch = h.metric && h.metric.match(/(\d+)/);
+    const num = numMatch ? numMatch[1] : '0';
+    return `<div class="habit-cell" onclick="openDetail('${h.id}')"><div class="habit-icon">${habitIcon(h.title)}</div><div class="habit-name">${h.title}</div><div class="habit-streak"><strong>${num}</strong> 天</div></div>`;
+  }).join('');
+  const heights = [40, 60, 75, 50, 90, 110, 80];
+  $('#weekTrend').innerHTML = heights.map((h,i) => `<div class="mood-col"><div class="mood-bar" style="height:${h}px"></div><span class="mood-day">${i+1}</span></div>`).join('');
+  const activities = [
+    {dot:'moss',title:'完成「晨跑 8 公里 · 滨江绿道」',meta:'今晨 06:42 · 配速 6\'05"'},
+    {dot:'amber',title:'上传西湖内圈训练照',meta:'昨天 19:00'},
+    {dot:'moss',title:'散文第二章结尾段修改完成',meta:'昨天 16:30'},
+    {dot:'ember',title:'钢琴课暂停 · 待重新安排',meta:'9月10日'},
+    {dot:'amber',title:'阅读《山之四季》完成第三章',meta:'9月10日'}
+  ];
+  $('#homeActivity').innerHTML = activities.map(a => `<div class="activity-item"><span class="activity-dot ${a.dot}"></span><div class="activity-body"><div class="activity-title">${a.title}</div><div class="activity-meta">${a.meta}</div></div></div>`).join('');
+  const achievements = [
+    {name:'首个10公里',date:'2026.07.14',color:'#D88C4A',txt:'10K',id:'r28'},
+    {name:'散文开篇',date:'2026.06.20',color:'#B8503C',txt:'序',id:'r29'},
+    {name:'首跑5公里',date:'2026.04.12',color:'#466B52',txt:'5K',id:'r30'}
+  ];
+  $('#achievementRow').innerHTML = achievements.map(a => `<div class="achievement" onclick="openDetail('${a.id}')">${badgeSVG(a.txt, a.color)}<div class="achievement-name">${a.name}</div><div class="achievement-date">${a.date}</div></div>`).join('');
+}
+
+function todayItemHTML(r){
+  const tag = r.tags[0] || '';
+  return `<div class="today-item ${r.status==='done'?'done':''}" onclick="toggleTodayDone('${r.id}')"><div class="ti-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg></div><div class="ti-body"><div class="ti-title">${r.title}</div><div class="ti-meta"><span>${r.location||''}</span><span>${r.metric||''}</span>${tag?`<span class="ti-tag">${tag}</span>`:''}</div></div></div>`;
+}
+
+function badgeSVG(text, color){
+  return `<svg viewBox="0 0 60 60"><defs><linearGradient id="bs${text}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${color}"/><stop offset="1" stop-color="#B8503C"/></linearGradient></defs><circle cx="30" cy="30" r="26" fill="url(#bs${text})"/><circle cx="30" cy="30" r="22" fill="#F5EFE2"/><text x="30" y="35" text-anchor="middle" font-size="13" fill="${color}" font-weight="700">${text}</text></svg>`;
+}
+
+function habitIcon(name){
+  if(name.includes('跑')) return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13" cy="4" r="2"/><path d="M4 22 L9 14 L6 10 L9 6 M14 8 L19 14 M14 12 L9 14"/></svg>';
+  if(name.includes('日记')||name.includes('写')) return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4 H20 V20 H4 Z M8 9 H16 M8 13 H14 M8 17 H12"/></svg>';
+  if(name.includes('冥想')) return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v10 M7 12h10"/></svg>';
+  if(name.includes('阅读')) return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4h7a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z M22 4h-7a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h8z"/></svg>';
+  if(name.includes('咖啡')) return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8h2a2 2 0 0 1 0 4h-2 M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4z"/></svg>';
+  return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>';
+}
+
+function toggleTodayDone(id){
+  const r = state.records.find(x => x.id === id);
+  if(!r) return;
+  if(r.status === 'done'){ r.status = 'doing'; r.progress = 50; toast('已重新打开'); }
+  else { r.status = 'done'; r.progress = 100; toast('又完成一件小事 ✨'); celebrate(); }
+  saveData(); refreshAll();
+}
+
+function renderLibrary(){
+  const counts = {all: state.records.length};
+  state.records.forEach(r => { counts[r.type] = (counts[r.type]||0) + 1; });
+  Object.keys(counts).forEach(k => { const el = $('#cnt-' + k); if(el) el.textContent = counts[k]; });
+  let records = state.records.slice();
+  if(state.libraryType !== 'all') records = records.filter(r => r.type === state.libraryType);
+  if(state.libraryFilter !== 'all') records = records.filter(r => r.status === state.libraryFilter);
+  if(state.libraryTagSearch){ const s = state.libraryTagSearch.toLowerCase(); records = records.filter(r => r.tags.some(t => t.toLowerCase().includes(s)) || r.title.toLowerCase().includes(s)); }
+  if(state.librarySort === 'date-desc') records.sort((a,b) => (b.date||'').localeCompare(a.date||''));
+  else if(state.librarySort === 'date-asc') records.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  else if(state.librarySort === 'name') records.sort((a,b) => a.title.localeCompare(b.title));
+  else if(state.librarySort === 'progress') records.sort((a,b) => (b.progress||0) - (a.progress||0));
+  $('#libraryList').innerHTML = records.length ? records.map(r => recordRowHTML(r)).join('') : '<div style="text-align:center;padding:60px 20px;color:var(--ink-faint)"><svg width="60" height="60" viewBox="0 0 240 200" style="margin:0 auto 12px;display:block"><path d="M0 160 L60 90 L100 130 L160 70 L200 110 L240 80 L240 200 L0 200 Z" fill="#F2D9BC" opacity=".5"/><path d="M0 180 L50 130 L120 160 L180 110 L240 140 L240 200 L0 200 Z" fill="#C8D5BB" opacity=".6"/><circle cx="120" cy="80" r="8" fill="#5A4F44"/><path d="M120 88 L120 130 M110 100 L130 100 M120 130 L108 165 M120 130 L132 165" stroke="#5A4F44" stroke-width="3" stroke-linecap="round"/></svg><div style="font-size:14px;color:var(--ink-soft)">没有匹配的记录</div><div style="font-size:12px;margin-top:6px">调整筛选条件，或<button onclick="openNewRecord()" style="color:var(--moss);text-decoration:underline;cursor:pointer">新增一条</button></div></div>';
+}
+
+function recordRowHTML(r){
+  const cover = r.cover && SCENES[r.cover] ? SCENES[r.cover] : '<svg viewBox="0 0 60 60"><rect width="60" height="60" fill="#C8D5BB"/><text x="30" y="35" text-anchor="middle" font-size="20" fill="#2F4A39">'+(TYPE[r.type] ? TYPE[r.type].charAt(0) : '?')+'</text></svg>';
+  return `<div class="record-row" onclick="openDetail('${r.id}')"><div class="record-thumb">${cover}</div><div class="record-main"><div class="record-name"><span class="name-text">${r.title}</span><span class="record-tag">${TYPE[r.type]}</span>${(r.tags||[]).slice(0,2).map(t => '<span class="record-tag amber">'+t+'</span>').join('')}</div><div class="record-meta">${r.location||''} · ${r.metric||''}</div></div><div class="record-date">${fmt(r.date)}</div><div class="record-status"><span class="status-pill ${r.status}">${({todo:'待开始',doing:'进行中',done:'已完成',paused:'暂停'})[r.status]}</span></div><div class="record-progress">${r.progress != null ? '<div class="record-progress-bar"><div class="record-progress-fill" style="width:'+r.progress+'%"></div></div><span class="record-progress-text">'+r.progress+'%</span>' : '<span style="color:var(--ink-faint);font-size:11px">-</span>'}</div></div>`;
+}
+
+function renderCalendar(){
+  const y = state.calYear, m = state.calMonth;
+  $('#calTitle').textContent = y+'年'+(m+1)+'月';
+  const firstDay = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const daysInPrev = new Date(y, m, 0).getDate();
+  const cells = [];
+  for(let i=firstDay-1;i>=0;i--) cells.push({d:daysInPrev-i, other:true});
+  for(let d=1; d<=daysInMonth; d++) cells.push({d, other:false});
+  while(cells.length < 42) cells.push({d: cells.length - firstDay - daysInMonth + 1, other:true});
+  $('#calDays').innerHTML = cells.map(c => {
+    const dt = new Date(c.other ? (m===0?y-1:y) : y, c.other ? (m===0?11:m-1) : m, c.d);
+    const ds = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+    const isToday = ds === TODAY.toISOString().slice(0,10);
+    const isSelected = state.calSelected && ds === state.calSelected.toISOString().slice(0,10);
+    const dayRecords = state.records.filter(r => r.date === ds);
+    const dots = dayRecords.slice(0,3).map(r => '<span class="day-dot '+({doing:'amber',todo:'sky',done:'',paused:'ember'})[r.status]+'"></span>').join('');
+    return '<div class="cal-day '+(c.other?'other':'')+' '+(isToday?'today':'')+' '+(isSelected?'selected':'')+'" onclick="calSelectDay(\''+ds+'\')">'+c.d+(dots?'<div class="day-dots">'+dots+'</div>':'')+'</div>';
+  }).join('');
+  renderCalDayDetail();
+}
+
+function renderCalDayDetail(){
+  const d = state.calSelected;
+  $('#calDayTitle').textContent = fmtW(d)+(d.toDateString()===TODAY.toDateString()?' · 今日':'');
+  const ds = d.toISOString().slice(0,10);
+  const events = state.records.filter(r => r.date === ds);
+  $('#calDayEvents').innerHTML = events.length ? events.map(e => `<div class="cal-event" onclick="openDetail('${e.id}')"><span class="cal-event-time">${TYPE[e.type]}</span><span class="cal-event-name">${e.title}</span></div>`).join('') : '<div style="text-align:center;padding:20px;color:var(--ink-faint);font-size:12px">这一天还没有记录 ✨</div>';
+  const reminders = state.records.filter(r => r.nextDate).sort((a,b) => a.nextDate.localeCompare(b.nextDate)).slice(0,3);
+  $('#reminderList').innerHTML = reminders.map(r => {
+    const diff = Math.round((new Date(r.nextDate) - TODAY)/86400000);
+    const isUrgent = diff > 0 && diff <= 7;
+    return `<div style="display:flex;gap:10px;padding:10px;background:${isUrgent?'#FCF3E4':'var(--moss-tint)'};border-radius:8px;font-size:12px"><span style="width:24px;height:24px;border-radius:50%;background:${isUrgent?'var(--amber)':'var(--moss)'};color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></span><div><div style="color:var(--ink);font-weight:500">${fmt(r.nextDate)} · ${relDay(r.nextDate)}</div><div style="color:var(--ink-soft);margin-top:2px">${r.title}</div></div></div>`;
+  }).join('');
+}
+
+function renderTimeline(){
+  const items = state.records.slice().sort((a,b) => (b.date||'').localeCompare(a.date||'')).slice(0,12);
+  $('#timelineList').innerHTML = items.map(r => `<div class="tl-item ${({milestone:'amber',goal:'amber',review:'ember'})[r.type]||''}" onclick="openDetail('${r.id}')"><div class="tl-date">${fmt(r.date)} · ${TYPE[r.type]}</div><div class="tl-title">${r.title}</div><div class="tl-desc">${(r.desc||'').split('\n')[0].slice(0,80)}${(r.desc||'').length>80?'…':''}</div></div>`).join('');
+}
+
+function calPrev(){ state.calMonth--; if(state.calMonth<0){state.calMonth=11;state.calYear--;} renderCalendar(); }
+function calNext(){ state.calMonth++; if(state.calMonth>11){state.calMonth=0;state.calYear++;} renderCalendar(); }
+function calToday(){ state.calMonth=TODAY.getMonth(); state.calYear=TODAY.getFullYear(); state.calSelected=new Date(TODAY); renderCalendar(); }
+function calSelectDay(ds){ state.calSelected = new Date(ds); renderCalendar(); }
+
+function switchView(v){
+  if(v==='month'){ $('#calendarView').classList.remove('hidden'); $('#timelineView').classList.add('hidden'); }
+  else { $('#calendarView').classList.add('hidden'); $('#timelineView').classList.remove('hidden'); }
+}
+
+function renderHabit(){
+  const habits = state.records.filter(r => r.type === 'habit');
+  $('#habitFullGrid').innerHTML = habits.map(h => {
+    const numMatch = h.metric && h.metric.match(/(\d+)/);
+    const num = numMatch ? numMatch[1] : '0';
+    return `<div class="card"><div class="card-body" style="padding:18px;text-align:center"><div style="width:60px;height:60px;margin:0 auto 10px;background:var(--moss-tint);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--moss-deep)">${habitIcon(h.title).replace('width="18"','width="28"').replace('height="18"','height="28"')}</div><div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px">${h.title}</div><div style="font-size:22px;font-weight:700;color:var(--amber);font-family:var(--font-num);margin:6px 0">${num} <span style="font-size:12px;color:var(--ink-soft);font-weight:500">${h.metric.match(/[\u4e00-\u9fa5]+/)?h.metric.match(/[\u4e00-\u9fa5]+/)[0]:''}</span></div><div style="font-size:11px;color:var(--ink-soft)">${h.location||''}</div><button class="btn btn-primary btn-sm" style="margin-top:12px;width:100%" onclick="quickCheckIn('${h.id}')">+1 天</button></div></div>`;
+  }).join('');
+  const heatmap = $('#habitHeatmap');
+  let cells = '';
+  const todayD = new Date(TODAY);
+  for(let i=29;i>=0;i--){
+    const dt = new Date(todayD);
+    dt.setDate(todayD.getDate() - i);
+    const filled = Math.random() > 0.35;
+    const intense = Math.random() > 0.5;
+    cells += '<div style="aspect-ratio:1;border-radius:3px;background:'+(filled?(intense?'var(--moss)':'var(--moss-soft)'):'#FAF6EC')+';cursor:pointer" title="'+(dt.getMonth()+1)+'/'+dt.getDate()+'"></div>';
+  }
+  heatmap.innerHTML = cells;
+}
+
+function quickCheckIn(id){
+  const r = state.records.find(x => x.id === id);
+  if(r){
+    // 智能解析 metric 中的数字（如 "连续 87 天"、"本月 2 次"、"45 分钟"）
+    const match = r.metric && r.metric.match(/(\d+)/);
+    if(match){
+      const newNum = parseInt(match[1]) + 1;
+      r.metric = r.metric.replace(/(\d+)/, newNum);
+    } else {
+      r.metric = '1 次';
+    }
+    saveData();
+    toast('已打卡 · '+r.title+' ✨');
+    celebrate();
+    refreshAll();
+  }
+}
+
+function renderToday(){
+  const items = state.records.filter(r => r.type === 'today');
+  $('#todayFullList').innerHTML = items.length ? items.map(r => todayItemHTML(r)).join('') : '<div style="text-align:center;padding:40px;color:var(--ink-faint)">今天还没有安排，去首页添加几件吧</div>';
+  const todayAlbums = ALBUM_DATA.slice(0,6);
+  $('#todayAlbum').innerHTML = todayAlbums.map(a => `<div style="aspect-ratio:1;border-radius:8px;overflow:hidden;cursor:pointer;border:1px solid var(--line-soft)" onclick="openLightbox('${a.cover}','${a.name}')">${SCENES[a.cover]}</div>`).join('');
+}
+
+function openTodayFocus(){ navigateTo('focus'); }
+
+function renderFocus(){
+  const records = state.records.filter(r => r.type === 'focus').slice(0,5);
+  $('#focusList').innerHTML = records.length ? records.map(r => recordRowHTML(r)).join('') : '<div style="text-align:center;padding:40px;color:var(--ink-faint)">还没有专注记录</div>';
+}
+
+function renderDiary(){
+  const items = state.records.filter(r => r.type === 'diary' || r.type === 'review');
+  $('#diaryList').innerHTML = items.length ? items.map(r => diaryHTML(r)).join('') : '<div style="text-align:center;padding:60px;color:var(--ink-faint)">还没有日记，写一篇吧 ✨</div>';
+}
+
+function diaryHTML(r){
+  const cover = r.cover && SCENES[r.cover] ? SCENES[r.cover] : SCENES.album_writing;
+  return `<div style="background:#fff;border-radius:var(--r-lg);border:1px solid var(--line-soft);overflow:hidden;cursor:pointer" onclick="openDetail('${r.id}')"><div style="height:160px;overflow:hidden">${cover}</div><div style="padding:18px 22px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:11px;letter-spacing:1px;color:var(--ink-faint);font-family:var(--font-num)">${fmt(r.date)}</span><span style="font-size:10px;background:var(--moss-tint);color:var(--moss-deep);padding:2px 8px;border-radius:6px">${TYPE[r.type]}</span></div><div style="font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px">${r.title}</div><div style="font-size:13px;color:var(--ink-soft);line-height:1.7;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">${(r.desc||'').replace(/\n/g, ' ')}</div><div style="margin-top:12px;display:flex;gap:6px">${(r.tags||[]).map(t => '<span style="font-size:10px;background:var(--amber-soft);color:#8C5722;padding:2px 8px;border-radius:6px">'+t+'</span>').join('')}</div></div></div>`;
+}
+
+function renderAlbum(){
+  $('#albumGrid').innerHTML = ALBUM_DATA.map(a => `<div class="album-item" onclick="openLightbox('${a.cover}','${a.name}')"><div class="album-cover">${SCENES[a.cover]}</div><div class="album-overlay"><div class="album-name">${a.name}</div><div class="album-meta"><span class="album-tag">${a.tag}</span><span>${a.meta}</span></div></div></div>`).join('');
+}
+
+function openDetail(id){
+  const r = state.records.find(x => x.id === id);
+  if(!r) return;
+  state.currentDetailId = id;
+  $('#detailCrumb').textContent = r.title;
+  $('#detailCrumbSub').textContent = TYPE[r.type]+' · '+fmt(r.date);
+  $('#detailTitle').textContent = r.title;
+  $('#detailMeta').innerHTML = '<span style="font-size:11px;background:var(--moss-tint);color:var(--moss-deep);padding:3px 10px;border-radius:8px">'+TYPE[r.type]+'</span><span style="font-size:11px;color:var(--ink-faint);font-family:var(--font-num)">'+fmt(r.date)+'</span>';
+  $('#detailTags').innerHTML = (r.tags||[]).map(t => '<span style="font-size:11px;background:var(--amber-soft);color:#8C5722;padding:3px 10px;border-radius:8px">#'+t+'</span>').join('');
+  $('#detailStartDate').textContent = fmt(r.date);
+  $('#detailPlanDate').textContent = r.nextDate ? fmt(r.nextDate) : '-';
+  $('#detailStatus').textContent = ({todo:'待开始',doing:'进行中',done:'已完成',paused:'暂停'})[r.status]+(r.progress!=null?' · '+r.progress+'%':'');
+  $('#detailMetric').textContent = r.metric || '-';
+  $('#detailDesc').textContent = r.desc || '-';
+  $('#detailCover').innerHTML = r.cover && SCENES[r.cover] ? SCENES[r.cover] : '<svg viewBox="0 0 800 320"><rect width="800" height="320" fill="#5A7A65"/><text x="400" y="170" text-anchor="middle" font-size="32" fill="#F5EFE2">'+r.title.charAt(0)+'</text></svg>';
+  const relatedAlbums = ALBUM_DATA.filter(a => a.rid === id || (r.relations||[]).includes(a.rid)).slice(0,4);
+  if(relatedAlbums.length){
+    $('#detailAlbum').innerHTML = relatedAlbums.map(a => '<div style="aspect-ratio:1;border-radius:8px;overflow:hidden;cursor:pointer" onclick="event.stopPropagation();openLightbox(\''+a.cover+'\',\''+a.name+'\')">'+SCENES[a.cover]+'</div>').join('');
+  } else {
+    const covers = ['album_morning','album_writing','album_book','album_park'];
+    $('#detailAlbum').innerHTML = covers.map((c,i) => '<div style="aspect-ratio:1;border-radius:8px;overflow:hidden;cursor:pointer" onclick="event.stopPropagation();openLightbox(\''+c+'\',\'相关图 '+(i+1)+'\')">'+SCENES[c]+'</div>').join('');
+  }
+  const relatedRecs = (r.relations||[]).map(rid => state.records.find(x => x.id === rid)).filter(Boolean);
+  if(relatedRecs.length){
+    $('#detailRelations').innerHTML = relatedRecs.map(rel => '<div class="relation-link" onclick="openDetail(\''+rel.id+'\')"><div class="relation-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div style="flex:1"><div style="font-weight:500;color:var(--ink)">'+rel.title+'</div><div style="font-size:11px;color:var(--ink-soft);margin-top:2px">'+TYPE[rel.type]+' · '+fmt(rel.date)+'</div></div><span class="ti-tag">'+TYPE[rel.type]+'</span></div>').join('');
+  } else {
+    $('#detailRelations').innerHTML = '<div style="color:var(--ink-faint);font-size:12px;text-align:center;padding:14px">暂无关联记录</div>';
+  }
+  $('#detailProgressBar').style.width = (r.progress||0) + '%';
+  $('#detailProgressText').textContent = (r.progress||0) + '%';
+  $('#detailProgressNote').textContent = r.nextDate ? '预计完成日期：'+fmt(r.nextDate)+' · '+relDay(r.nextDate) : '无截止日期';
+  $('#detailLoc').textContent = r.location || '-';
+  $('#detailRelCount').textContent = relatedRecs.length;
+  $('#detailTypeName').textContent = TYPE[r.type];
+  $('#detailNext').textContent = r.nextDate ? fmtM(r.nextDate) : '-';
+
+  const logs = [];
+  if(r.relations && r.relations.length){
+    logs.push({time:fmtM(r.date), text:'创建记录，关联了 <strong>'+r.relations.length+'</strong> 项'});
+  } else {
+    logs.push({time:fmtM(r.date), text:'创建记录'});
+  }
+  if(r.status === 'doing'){
+    logs.push({time:'9/10 17:30', text:'更新进度至 <strong>'+r.progress+'%</strong>'});
+  }
+  if(r.status === 'done'){
+    logs.push({time:fmtM(r.date), text:'标记为 <strong>已完成</strong> 🎉'});
+  }
+  if(r.tags && r.tags.length){
+    logs.push({time:'9/8 18:00', text:'添加标签：'+r.tags.map(t=>'<strong>#'+t+'</strong>').join(' ')});
+  }
+  logs.push({time:'9/3 22:10', text:'更新备注'});
+  logs.push({time:'8/28 18:00', text:'编辑内容'});
+  $('#detailActivity').innerHTML = logs.map(l => '<div class="log-item"><div class="log-time">'+l.time+'</div><div class="log-text">'+l.text+'</div></div>').join('');
+
+  navigateTo('detail');
+}
+
+function deleteCurrentDetail(){
+  if(!state.currentDetailId) return;
+  const r = state.records.find(x => x.id === state.currentDetailId);
+  if(!r) return;
+  const relationCount = (r.relations||[]).length;
+  askConfirm({
+    title: '删除这条记录？',
+    msg: '删除后无法恢复，关联关系也会一并移除。',
+    detail: '<div class="detail-row"><span>记录标题</span><strong>'+r.title+'</strong></div><div class="detail-row"><span>类型</span><strong>'+TYPE[r.type]+'</strong></div><div class="detail-row"><span>关联条数</span><strong>'+relationCount+' 条记录</strong></div>',
+    icon: 'danger',
+    okText: '确认删除',
+    onOk: () => {
+      state.records = state.records.filter(x => x.id !== state.currentDetailId);
+      saveData();
+      toast('记录已删除', 'danger');
+      navigateTo('library');
+    }
+  });
+}
+
+function editCurrentDetail(){
+  const r = state.records.find(x => x.id === state.currentDetailId);
+  if(r){ openNewRecord(r.type, r.id); }
+}
+
+// ============ 导航 ============
+function navigateTo(page){
+  $$('.page').forEach(p => p.classList.add('hidden'));
+  const target = $('#page-' + page);
+  if(target) target.classList.remove('hidden');
+  $$('.nav-item').forEach(n => n.classList.remove('active'));
+  const navItem = $(`.nav-item[data-page="${page}"]`);
+  if(navItem) navItem.classList.add('active');
+  $$('.mobile-nav-item').forEach(n => n.classList.remove('active'));
+  const mn = $(`.mobile-nav-item[data-page="${page}"]`);
+  if(mn) mn.classList.add('active');
+  const titleMap = {home:'首页', library:'记录库', calendar:'计划日历', habit:'习惯印记', insights:'数据洞察', album:'素材相册', settings:'设置', today:'今日三件事', focus:'专注计时', review:'成长日记', detail:'详情'};
+  $('#crumbTitle').textContent = titleMap[page] || '远行';
+  $('#crumbSub').textContent = '';
+  $('#crumbDate').textContent = fmtW(TODAY);
+  state.currentPage = page;
+  window.scrollTo({top:0, behavior:'smooth'});
+  refreshAll();
+}
+
+$$('.nav-item').forEach(n => n.addEventListener('click', () => navigateTo(n.dataset.page)));
+$$('.mobile-nav-item').forEach(n => n.addEventListener('click', () => navigateTo(n.dataset.page)));
+
+// ============ Modal 新增/编辑 ============
+let savedImageData = null;
+function openNewRecord(type, editId){
+  state.recordStep = 1;
+  state.editingId = editId || null;
+  if(editId){
+    const r = state.records.find(x => x.id === editId);
+    if(r){
+      $('#recordModalTitle').textContent = '编辑记录';
+      state.recordType = r.type;
+      $('#recTitle').value = r.title;
+      $('#recDate').value = r.date;
+      $('#recNextDate').value = r.nextDate || '';
+      $('#recStatus').value = r.status;
+      $('#recTags').value = (r.tags||[]).join(' ');
+      $('#recLocation').value = r.location || '';
+      $('#recMetric').value = r.metric || '';
+      $('#recDesc').value = r.desc || '';
+      savedImageData = null;
+      $('#imagePreview').innerHTML = '';
+      // 同步类型选择
+      $$('#typeSelector .filter-chip').forEach(c => c.classList.toggle('active', c.dataset.type === r.type));
+    }
+  } else {
+    $('#recordModalTitle').textContent = '新增记录';
+    state.recordType = type || 'goal';
+    $('#recTitle').value = '';
+    $('#recDate').value = TODAY.toISOString().slice(0,10);
+    $('#recNextDate').value = '';
+    $('#recStatus').value = 'doing';
+    $('#recTags').value = '';
+    $('#recLocation').value = '';
+    $('#recMetric').value = '';
+    $('#recDesc').value = '';
+    savedImageData = null;
+    $('#imagePreview').innerHTML = '';
+    $$('#typeSelector .filter-chip').forEach(c => c.classList.toggle('active', c.dataset.type === state.recordType));
+  }
+  updateStepUI();
+  $('#recordModal').classList.add('open');
+}
+
+function closeModal(id){ $('#'+id).classList.remove('open'); }
+
+function nextStep(){
+  if(state.recordStep === 1){
+    const title = $('#recTitle').value.trim();
+    if(!title){ toast('请填写标题'); return; }
+  }
+  if(state.recordStep < 3){ state.recordStep++; updateStepUI(); }
+}
+
+function prevStep(){
+  if(state.recordStep > 1){ state.recordStep--; updateStepUI(); }
+}
+
+function updateStepUI(){
+  $('#recordStep1').classList.toggle('hidden', state.recordStep !== 1);
+  $('#recordStep2').classList.toggle('hidden', state.recordStep !== 2);
+  $('#recordStep3').classList.toggle('hidden', state.recordStep !== 3);
+  $('#stepBar1').style.background = state.recordStep >= 1 ? 'var(--moss)' : 'var(--line)';
+  $('#stepBar2').style.background = state.recordStep >= 2 ? 'var(--moss)' : 'var(--line)';
+  $('#stepBar3').style.background = state.recordStep >= 3 ? 'var(--moss)' : 'var(--line)';
+  const labels = ['第 1 步 / 共 3 步 · 类型与标题','第 2 步 / 共 3 步 · 核心字段','第 3 步 / 共 3 步 · 媒体与确认'];
+  $('#stepLabel').textContent = labels[state.recordStep-1];
+  $('#prevStepBtn').classList.toggle('hidden', state.recordStep === 1);
+  $('#nextStepBtn').classList.toggle('hidden', state.recordStep === 3);
+  $('#saveBtn').classList.toggle('hidden', state.recordStep !== 3);
+}
+
+$$('#typeSelector .filter-chip').forEach(c => c.addEventListener('click', () => {
+  $$('#typeSelector .filter-chip').forEach(x => x.classList.remove('active'));
+  c.classList.add('active');
+  state.recordType = c.dataset.type;
+}));
+
+function saveRecord(){
+  const title = $('#recTitle').value.trim();
+  if(!title){ toast('请填写标题'); state.recordStep = 1; updateStepUI(); return; }
+  const data = {
+    title,
+    type: state.recordType,
+    date: $('#recDate').value || TODAY.toISOString().slice(0,10),
+    nextDate: $('#recNextDate').value,
+    status: $('#recStatus').value,
+    progress: $('#recStatus').value === 'done' ? 100 : ($('#recStatus').value === 'todo' ? 0 : 50),
+    tags: $('#recTags').value.split(/\s+/).filter(Boolean),
+    location: $('#recLocation').value,
+    metric: $('#recMetric').value,
+    desc: $('#recDesc').value,
+    cover: savedImageData ? 'album_morning' : (TYPE[state.recordType]==='今日'?'album_morning':'')
+  };
+  if(state.editingId){
+    const r = state.records.find(x => x.id === state.editingId);
+    if(r){ Object.assign(r, data); toast('已保存修改'); }
+  } else {
+    const id = 'r' + (Date.now().toString().slice(-6));
+    data.id = id;
+    state.records.unshift(data);
+    toast('已新增记录 ✨');
+    if(data.status === 'done') celebrate();
+  }
+  saveData();
+  closeModal('recordModal');
+  refreshAll();
+}
+
+function previewImage(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    savedImageData = e.target.result;
+    $('#imagePreview').innerHTML = '<img src="'+e.target.result+'" style="max-width:200px;max-height:120px;border-radius:8px;border:1px solid var(--line-soft)">';
+    toast('图片已选择');
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============ 库筛选 ============
+$$('#libraryTabs .library-tab').forEach(t => t.addEventListener('click', () => {
+  $$('#libraryTabs .library-tab').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  state.libraryType = t.dataset.type;
+  renderLibrary();
+}));
+
+$$('.filter-row .filter-chip').forEach(c => c.addEventListener('click', () => {
+  $$('.filter-row .filter-chip').forEach(x => x.classList.remove('active'));
+  c.classList.add('active');
+  state.libraryFilter = c.dataset.filter;
+  renderLibrary();
+}));
+
+function applyLibraryFilter(){
+  state.libraryTagSearch = $('#tagSearch').value;
+  state.librarySort = $('#sortBy').value;
+  renderLibrary();
+}
+
+// ============ 专注 ============
+function startFocus(){
+  toast('专注计时已开始（模拟）');
+  navigateTo('focus');
+}
+
+function completeFocus(){
+  celebrate();
+  toast('完成一次专注 ✨');
+  refreshAll();
+}
+
+// ============ 全局搜索 ============
+function handleGlobalSearch(q){
+  if(!q) return;
+  state.libraryType = 'all';
+  state.libraryTagSearch = q;
+  navigateTo('library');
+  setTimeout(()=>{ $('#tagSearch').value = q; renderLibrary(); }, 50);
+}
+
+// ============ Lightbox ============
+function openLightbox(scene, caption){
+  if(!scene || !SCENES[scene]) return;
+  $('#lightboxContent').innerHTML = SCENES[scene];
+  $('#lightboxCap').textContent = caption || '';
+  $('#lightbox').classList.add('open');
+}
+function closeLightbox(){ $('#lightbox').classList.remove('open'); }
+
+// ============ Drawer ============
+function openDrawer(html){
+  $('#drawerContent').innerHTML = html;
+  $('#drawerMask').classList.add('open');
+  $('#quickDrawer').classList.add('open');
+}
+function closeDrawer(){ $('#drawerMask').classList.remove('open'); $('#quickDrawer').classList.remove('open'); }
+
+// ============ 数据导出导入 ============
+function exportData(){
+  const blob = new Blob([JSON.stringify({version:1, exportedAt:new Date().toISOString(), records: state.records}, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'yuanxing-backup-'+TODAY.toISOString().slice(0,10)+'.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast('备份已下载');
+}
+
+function importData(evt){
+  const file = evt.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const data = JSON.parse(e.target.result);
+      if(data.records && Array.isArray(data.records)){
+        const currentCount = state.records.length;
+        askConfirm({
+          title: '从备份恢复？',
+          msg: '导入后，现有数据将被备份中的内容覆盖。',
+          detail: '<div class="detail-row"><span>当前数据</span><strong>'+currentCount+' 条记录</strong></div><div class="detail-row"><span>备份中</span><strong>'+data.records.length+' 条记录</strong></div>',
+          icon: 'warn',
+          okText: '确认导入',
+          onOk: () => {
+            state.records = data.records;
+            saveData();
+            navigateTo('home');
+            refreshAll();
+            toast('已导入 '+data.records.length+' 条记录 ✨', 'success');
+          }
+        });
+      } else {
+        toast('文件格式不正确', 'danger');
+      }
+    }catch(err){ toast('文件解析失败 · 请检查 JSON 格式', 'danger'); }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+function confirmClearAll(){
+  const recCount = state.records.length;
+  const albumCount = ALBUM_DATA.length;
+  askConfirm({
+    title: '清空所有示例数据？',
+    msg: '所有已记录的成长足迹将被一起抹去，无法恢复。',
+    detail: '<div class="detail-row"><span>记录条数</span><strong>'+recCount+' 条</strong></div><div class="detail-row"><span>关联素材</span><strong>'+albumCount+' 张图</strong></div><div style="margin-top:8px;color:#8C5722">⚠ 建议先导出 JSON 备份</div>',
+    icon: 'danger',
+    okText: '确认清空',
+    onOk: () => {
+      state.records = [];
+      saveData();
+      navigateTo('home');
+      refreshAll();
+      toast('已清空数据 · 工作台已回到空白', 'danger');
+    }
+  });
+}
+
+// ============ 自定义确认弹窗 ============
+function askConfirm(opts){
+  const { title, msg, detail, icon='warn', okText='确认', cancelText='再想想', onOk, onCancel } = opts;
+  $('#confirmTitle').textContent = title;
+  $('#confirmMsg').textContent = msg;
+  $('#confirmDetail').innerHTML = detail || '';
+  $('#confirmDetail').style.display = detail ? 'block' : 'none';
+  const iconEl = $('#confirmIcon');
+  iconEl.className = 'confirm-icon ' + icon;
+  $('#confirmOk').textContent = okText;
+  $('#confirmCancel').textContent = cancelText;
+  const mask = $('#confirmMask');
+  mask.classList.add('open');
+  const close = (act) => {
+    mask.classList.remove('open');
+    $('#confirmOk').onclick = null;
+    $('#confirmCancel').onclick = null;
+    if(act === 'ok' && onOk) onOk();
+    if(act === 'cancel' && onCancel) onCancel();
+  };
+  $('#confirmOk').onclick = () => close('ok');
+  $('#confirmCancel').onclick = () => close('cancel');
+  mask.onclick = (e) => { if(e.target === mask) close('cancel'); };
+}
+
+function openMilestoneDetail(month){
+  toast('查看 ' + month + ' 里程碑');
+}
+
+// 初始化
+loadData();
+navigateTo('home');
+</script>
+</body>
+</html>

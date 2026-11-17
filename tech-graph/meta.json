@@ -1,0 +1,14 @@
+{
+  "id": "tech-graph",
+  "version": "1.0.0",
+  "i18n": {
+    "zh-CN": {
+      "name": "技术图表",
+      "description": "创建技术图表，如软件架构图、数据流图、流程图、时序图、UML、ER 图、网络拓扑、时间线和技术概念图，导出 SVG、PNG、语义动画 GIF 或离线交互式 HTML。当用户要求可视化系统或工程概念时使用。"
+    },
+    "en-US": {
+      "name": "Tech Graph",
+      "description": "Create technical diagrams such as software architecture, data flow, flowcharts, sequence diagrams, UML, ER, network topology, timelines, and technical concept maps, then export SVG, PNG, semantic GIF, or offline interactive HTML."
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "ffc5fcbe-e257-4568-a4d2-fbac0b6b81f6",
+  "path": "codeartsagent-doc-guide",
+  "path_key": "codeartsagent-doc-guide",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

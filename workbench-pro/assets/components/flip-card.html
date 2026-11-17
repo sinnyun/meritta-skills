@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<!-- 组件预览页：翻卡学习卡 flip-card（复制区见两个标记行之间） -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>组件预览：翻卡学习卡</title>
+</head>
+<body style="background:#f5f6fa;margin:0;padding:24px;font-family:-apple-system,'PingFang SC',sans-serif">
+<!-- ⬇ 组件代码开始：整段复制到骨架的模块槽 -->
+<style>
+.fc-stage{perspective:1000px;max-width:300px;margin:0 auto}
+.fc-card{
+  position:relative;width:100%;min-height:380px;aspect-ratio:3/4;transform-style:preserve-3d;
+  transition:transform .5s;cursor:pointer;
+}
+.fc-card.flip{transform:rotateY(180deg)}
+.fc-face{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;padding:18px;text-align:center;
+}
+.fc-front{background:linear-gradient(150deg,var(--c-primary,#4f6ef7),#7b8ffc);color:#fff}
+.fc-back{background:#fff;border:1px solid var(--c-line,#eceef3);transform:rotateY(180deg)}
+.fc-main{font-size:64px;font-weight:700;line-height:1.1}
+.fc-kid .fc-main{font-size:84px}
+.fc-sub{font-size:14px;opacity:.85}
+.fc-back .fc-main{color:var(--c-primary,#4f6ef7);font-size:44px}
+.fc-back .fc-sub{color:var(--c-sub,#8a90a0)}
+.fc-hint{position:absolute;top:12px;right:16px;font-size:11px;opacity:.7}
+.fc-corner{position:absolute;top:12px;left:16px;font-size:11px;opacity:.7}
+.fc-ctrl{display:flex;gap:10px;justify-content:center;margin-top:14px}
+.fc-btn{
+  min-height:44px;padding:0 18px;border:none;border-radius:12px;cursor:pointer;font-size:14px;
+  background:var(--c-primary-soft,#eef1fe);color:var(--c-primary,#4f6ef7);
+}
+.fc-btn.good{background:var(--c-ok,#18a058);color:#fff}
+.fc-btn.again{background:var(--c-warn-soft,#fef4e6);color:var(--c-warn,#f59e0b)}
+.fc-btn:disabled{opacity:.4;cursor:not-allowed}
+</style>
+<section class="card" style="background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(31,36,48,.06);padding:16px">
+  <div class="fc-stage" id="fc-stage">
+    <div class="fc-card" id="fc-card">
+      <div class="fc-face fc-front">
+        <span class="fc-corner" id="fc-corner">汉字</span>
+        <span class="fc-hint" id="fc-hint"></span>
+        <div class="fc-main" id="fc-front-main">日</div>
+        <div class="fc-sub" id="fc-front-sub">点我翻面</div>
+      </div>
+      <div class="fc-face fc-back">
+        <div class="fc-main" id="fc-back-main">rì</div>
+        <div class="fc-sub" id="fc-back-sub">太阳 · 日出 · 日常</div>
+      </div>
+    </div>
+  </div>
+  <div class="fc-ctrl">
+    <button class="fc-btn" id="fc-prev">‹ 上一张</button>
+    <button class="fc-btn again" id="fc-again">再看看</button>
+    <button class="fc-btn good" id="fc-good">认识啦</button>
+    <button class="fc-btn" id="fc-next">下一张 ›</button>
+  </div>
+</section>
+<script>
+/* 翻卡：FlipCard.load(el, cards, appId)
+   cards = [{front:'日', frontSub:'象形字', back:'rì', backSub:'太阳 · 日出 · 日常'}]
+   掌握进度存 wb_{appId}_cards_progress = {"0":"good"}；儿童向给 section 加 class "fc-kid" */
+const FlipCard = {
+  cards: [], idx: 0, progress: {}, appId: 'demo',
+  load(el, cards, appId){
+    this.cards = cards || []; this.appId = appId || this.appId; this.idx = 0;
+    try{ this.progress = JSON.parse(localStorage.getItem('wb_'+this.appId+'_cards_progress')) || {}; }
+    catch(e){ this.progress = {}; }
+    this.show(el);
+  },
+  show(el){
+    const c = this.cards[this.idx];
+    if(!c) return;
+    el.querySelector('#fc-card').classList.remove('flip');
+    el.querySelector('#fc-front-main').textContent = c.front || '';
+    el.querySelector('#fc-front-sub').textContent = c.frontSub || '点我翻面';
+    el.querySelector('#fc-back-main').textContent = c.back || '';
+    el.querySelector('#fc-back-sub').textContent = c.backSub || '';
+    el.querySelector('#fc-hint').textContent = (this.idx+1) + ' / ' + this.cards.length;
+    el.querySelector('#fc-corner').textContent = this.progress[this.idx] === 'good' ? '✓ 已掌握' : (c.frontSub || '汉字');
+    el.querySelector('#fc-prev').disabled = this.idx === 0;
+    el.querySelector('#fc-next').disabled = this.idx === this.cards.length - 1;
+  },
+  bind(el){
+    el.querySelector('#fc-card').addEventListener('click', () =>
+      el.querySelector('#fc-card').classList.toggle('flip'));
+    el.querySelector('#fc-prev').addEventListener('click', () => { if(this.idx>0){ this.idx--; this.show(el);} });
+    el.querySelector('#fc-next').addEventListener('click', () => { if(this.idx<this.cards.length-1){ this.idx++; this.show(el);} });
+    el.querySelector('#fc-good').addEventListener('click', () => this.mark(el, 'good'));
+    el.querySelector('#fc-again').addEventListener('click', () => this.mark(el, 'again'));
+  },
+  mark(el, status){
+    this.progress[this.idx] = status;
+    try{ localStorage.setItem('wb_'+this.appId+'_cards_progress', JSON.stringify(this.progress)); }catch(e){}
+    if(this.idx < this.cards.length - 1){ this.idx++; }
+    this.show(el);   // 自渲染，不联动其他模块
+  }
+};
+</script>
+<!-- ⬆ 组件代码结束 -->
+
+<script>
+/* 预览演示 */
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.querySelector('section.card');
+  FlipCard.load(el, [
+    {front:'日', frontSub:'象形字', back:'rì', backSub:'太阳 · 日出 · 日常'},
+    {front:'月', frontSub:'象形字', back:'yuè', backSub:'月亮 · 月份 · 月光'},
+    {front:'山', frontSub:'象形字', back:'shān', backSub:'高山 · 山水 · 上山'},
+    {front:'水', frontSub:'象形字', back:'shuǐ', backSub:'河水 · 水果 · 喝水'},
+    {front:'火', frontSub:'象形字', back:'huǒ', backSub:'火花 · 火车 · 着火'},
+  ], 'demo');
+  FlipCard.bind(el);
+});
+</script>
+</body>
+</html>

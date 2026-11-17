@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>个人咨询工作台</title>
+<style>
+  :root{
+    --accent:#6c5ce7;
+    --blue:#3b82f6;
+    --teal:#0ea5a4;
+    --orange:#f59e0b;
+    --pink:#ec4899;
+    --text:#2b2f3a;
+    --text-2:#8a90a0;
+    --card:rgba(255,255,255,.74);
+    --card-solid:#ffffff;
+    --border:rgba(255,255,255,.65);
+    --line:rgba(43,47,58,.08);
+    --shadow:0 8px 28px rgba(52,63,96,.10);
+    --shadow-lift:0 14px 36px rgba(52,63,96,.16);
+    --radius:20px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+    color:var(--text);
+    font-size:15px;line-height:1.5;
+    min-height:100vh;
+    background:linear-gradient(135deg,#d9f4e7 0%,#dcebfc 34%,#e9e3fb 66%,#fce4f0 100%) fixed;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* 自定义背景图层（设置中上传/填写） */
+  #bgLayer{
+    position:fixed;inset:0;z-index:-1;
+    background-size:cover;background-position:center;
+    opacity:0;transition:opacity .6s ease;
+  }
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  input{font-family:inherit;}
+  ::selection{background:rgba(108,92,231,.22);}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:rgba(43,47,58,.14);border-radius:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  /* ===== 顶部导航栏 ===== */
+  .topbar{
+    position:sticky;top:0;z-index:100;
+    padding:14px 20px 6px;
+    max-width:1240px;margin:0 auto;
+  }
+  .topbar-card{
+    display:flex;align-items:center;gap:12px;
+    background:rgba(255,255,255,.8);
+    -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+    border:1px solid var(--border);border-radius:980px;
+    padding:9px 14px 9px 10px;box-shadow:var(--shadow);
+  }
+  .avatar{
+    width:34px;height:34px;border-radius:50%;flex-shrink:0;
+    background:linear-gradient(135deg,#6c5ce7,#3b82f6);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 3px 10px rgba(108,92,231,.35);
+  }
+  .topbar-title{font-size:17px;font-weight:600;letter-spacing:-.01em;}
+  .topbar-sub{font-size:12px;color:var(--text-2);margin-top:1px;}
+  .topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+  .sync-pill{
+    display:flex;align-items:center;gap:6px;
+    font-size:12px;color:var(--text-2);
+    background:rgba(43,47,58,.05);border-radius:980px;padding:6px 12px;
+    transition:all .3s ease;
+  }
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.7);}
+  .sync-pill.saving .sync-dot{background:#f59e0b;box-shadow:0 0 6px rgba(245,158,11,.7);}
+  .icon-btn{
+    width:36px;height:36px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text-2);transition:all .25s ease;
+  }
+  .icon-btn:hover{background:rgba(43,47,58,.07);color:var(--text);transform:rotate(30deg);}
+
+  /* ===== 主体卡片 · 瀑布流 ===== */
+  .board{
+    max-width:1240px;margin:0 auto;padding:12px 20px 40px;
+    columns:3;column-gap:18px;
+  }
+  .card{
+    background:var(--card);
+    -webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+    border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:18px;
+    animation:fadeUp .5s ease both;
+    transition:box-shadow .35s ease,transform .35s ease;
+    min-width:0;
+    break-inside:avoid;-webkit-column-break-inside:avoid;
+    margin-bottom:18px;
+  }
+  .card:nth-child(2){animation-delay:.06s;}
+  .card:nth-child(3){animation-delay:.12s;}
+  .card:nth-child(4){animation-delay:.18s;}
+  .card:nth-child(5){animation-delay:.24s;}
+  .card:nth-child(6){animation-delay:.3s;}
+  .card:hover{box-shadow:var(--shadow-lift);transform:translateY(-2px);}
+  .card-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .card-ico{
+    width:30px;height:30px;border-radius:9px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;color:#fff;
+  }
+  .card-title{font-size:16px;font-weight:600;letter-spacing:-.01em;}
+  .card-head-right{margin-left:auto;display:flex;align-items:center;gap:6px;}
+  .count-badge{font-size:13px;font-weight:600;color:var(--text-2);}
+  .mini-btn{
+    width:28px;height:28px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(108,92,231,.1);color:var(--accent);
+    transition:all .25s ease;
+  }
+  .mini-btn:hover{background:var(--accent);color:#fff;transform:scale(1.08);}
+  .ghost{
+    font-size:12px;color:var(--text-2);padding:5px 11px;border-radius:980px;
+    border:1px solid var(--line);background:rgba(255,255,255,.6);transition:all .25s ease;
+  }
+  .ghost:hover{color:var(--accent);border-color:rgba(108,92,231,.4);}
+
+  /* ===== 卡片1 · AI 热门 ===== */
+  .news-list{max-height:560px;overflow-y:auto;margin:0 -6px;padding:0 6px;}
+  .news-item{padding:12px 4px;border-bottom:1px solid var(--line);animation:fadeUp .4s ease both;}
+  .news-item:last-child{border-bottom:none;}
+  .news-top{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+  .src-chip{
+    font-size:11px;font-weight:600;color:#fff;
+    padding:2px 8px;border-radius:6px;flex-shrink:0;
+  }
+  .news-date{font-size:11px;color:var(--text-2);margin-left:auto;flex-shrink:0;}
+  .news-title{font-size:14px;font-weight:600;line-height:1.4;margin-bottom:4px;}
+  .news-item a.news-title{color:var(--text);text-decoration:none;transition:color .2s;}
+  .news-item a.news-title:hover{color:var(--accent);}
+  .news-summary{
+    font-size:12px;color:var(--text-2);line-height:1.55;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .news-foot{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-top:12px;padding-top:10px;border-top:1px solid var(--line);
+    font-size:12px;color:var(--text-2);
+  }
+  .empty-tip{text-align:center;color:var(--text-2);font-size:13px;padding:36px 10px;}
+
+  /* ===== 卡片2 · 待办 ===== */
+  .todo-add{
+    display:flex;gap:8px;margin-bottom:12px;
+  }
+  .todo-add input{
+    flex:1;min-width:0;border:1px solid var(--line);outline:none;
+    background:rgba(255,255,255,.7);border-radius:12px;
+    padding:9px 13px;font-size:14px;color:var(--text);
+    transition:border-color .25s ease,box-shadow .25s ease;
+  }
+  .todo-add input::placeholder{color:var(--text-2);}
+  .todo-add input:focus{border-color:rgba(108,92,231,.5);box-shadow:0 0 0 3px rgba(108,92,231,.12);}
+  .todo-add button{
+    flex-shrink:0;padding:0 16px;border-radius:12px;font-size:13px;font-weight:600;
+    background:linear-gradient(135deg,#6c5ce7,#5a8df0);color:#fff;
+    box-shadow:0 4px 12px rgba(108,92,231,.3);
+    transition:all .25s ease;
+  }
+  .todo-add button:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(108,92,231,.4);}
+  .todo-list{display:flex;flex-direction:column;gap:8px;max-height:480px;overflow-y:auto;}
+  .todo-row{
+    display:flex;align-items:center;gap:10px;
+    background:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.9);
+    border-radius:14px;padding:10px 12px;
+    transition:transform .25s ease,box-shadow .25s ease,opacity .3s ease;
+    animation:fadeUp .4s ease both;
+  }
+  .todo-row:hover{transform:translateX(3px);box-shadow:0 4px 14px rgba(52,63,96,.10);}
+  .todo-check{
+    width:20px;height:20px;border-radius:7px;flex-shrink:0;
+    border:2px solid #cfd4e0;display:flex;align-items:center;justify-content:center;
+    color:#fff;transition:all .25s ease;
+  }
+  .todo-row.done .todo-check{background:#22c55e;border-color:#22c55e;}
+  .todo-text{flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .todo-row.done .todo-text{color:var(--text-2);text-decoration:line-through;}
+  .todo-del{
+    flex-shrink:0;width:26px;height:26px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    color:transparent;transition:all .2s ease;
+  }
+  .todo-row:hover .todo-del{color:#ef4444;background:rgba(239,68,68,.08);}
+  .todo-del:hover{background:rgba(239,68,68,.16)!important;}
+
+  /* ===== 卡片3 · 工具铭 ===== */
+  .entry-row{display:flex;flex-direction:column;gap:8px;}
+  .entry{
+    border-radius:14px;transition:background .25s ease;
+  }
+  .entry-btn{
+    width:100%;display:flex;align-items:center;gap:10px;
+    padding:11px 12px;border-radius:14px;text-align:left;
+    transition:background .25s ease;
+  }
+  .entry-btn:hover,.entry.open .entry-btn{background:rgba(43,47,58,.05);}
+  .entry-ico{
+    width:30px;height:30px;border-radius:9px;flex-shrink:0;color:#fff;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .entry-name{font-size:14px;font-weight:600;flex:1;}
+  .entry-arrow{color:var(--text-2);transition:transform .3s ease;flex-shrink:0;}
+  .entry.open .entry-arrow{transform:rotate(180deg);}
+  .entry-panel{
+    max-height:0;overflow:hidden;
+    transition:max-height .4s cubic-bezier(.25,.8,.25,1),opacity .35s ease;
+    opacity:0;
+  }
+  .entry.open .entry-panel{max-height:420px;opacity:1;}
+  .panel-inner{padding:4px 12px 12px 52px;}
+  .chip-grid{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:13px;color:var(--text);text-decoration:none;
+    background:rgba(255,255,255,.9);border:1px solid var(--line);
+    border-radius:12px;padding:7px 13px;
+    transition:all .25s ease;position:relative;
+  }
+  .chip:hover{
+    border-color:rgba(108,92,231,.5);color:var(--accent);
+    transform:translateY(-1px);box-shadow:0 4px 10px rgba(108,92,231,.14);
+  }
+  .chip.plain{cursor:default;}
+  .chip.plain:hover{color:var(--text);border-color:var(--line);transform:none;box-shadow:none;}
+  .chip-del{
+    display:none;align-items:center;justify-content:center;
+    width:15px;height:15px;border-radius:50%;
+    background:rgba(239,68,68,.12);color:#ef4444;font-size:10px;flex-shrink:0;
+  }
+  .chip:hover .chip-del{display:flex;}
+  .chip-form{display:flex;flex-direction:column;gap:7px;}
+  .chip-form input{
+    border:1px solid var(--line);outline:none;background:rgba(255,255,255,.7);
+    border-radius:10px;padding:7px 11px;font-size:13px;color:var(--text);
+    transition:border-color .25s ease,box-shadow .25s ease;width:100%;
+  }
+  .chip-form input:focus{border-color:rgba(108,92,231,.5);box-shadow:0 0 0 3px rgba(108,92,231,.1);}
+  .chip-form button{
+    align-self:flex-start;font-size:12px;font-weight:600;color:#fff;
+    background:linear-gradient(135deg,#0ea5a4,#3b82f6);
+    padding:7px 16px;border-radius:980px;
+    box-shadow:0 3px 10px rgba(14,165,164,.3);
+    transition:all .25s ease;
+  }
+  .chip-form button:hover{transform:translateY(-1px);}
+
+  /* ===== 新闻已读/收藏交互 ===== */
+  .news-item a.news-title{display:block;cursor:pointer;}
+  .news-item.read a.news-title{color:var(--text-2);font-weight:500;}
+  .read-toggle{
+    width:20px;height:20px;border-radius:50%;flex-shrink:0;padding:0;
+    display:flex;align-items:center;justify-content:center;
+    border:2px solid #cfd4e0;color:#22c55e;background:transparent;
+    transition:all .25s ease;
+  }
+  .read-toggle:hover{border-color:var(--accent);transform:scale(1.12);}
+  .read-toggle.done{border-color:#86efac;}
+  .read-toggle.done:hover{border-color:#22c55e;}
+  .read-dot{
+    width:8px;height:8px;border-radius:50%;display:block;
+    background:var(--accent);box-shadow:0 0 6px rgba(108,92,231,.65);
+    animation:dotPulse 2.2s ease-in-out infinite;
+  }
+  @keyframes dotPulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .fav-btn{
+    width:26px;height:26px;border-radius:8px;flex-shrink:0;margin-left:2px;
+    display:flex;align-items:center;justify-content:center;
+    color:#c9cede;transition:all .25s ease;
+  }
+  .fav-btn:hover{color:var(--orange);transform:scale(1.15);}
+  .fav-btn.on{color:var(--orange);}
+  .fav-btn.on svg{filter:drop-shadow(0 1px 4px rgba(245,158,11,.5));}
+  .ghost.on{color:#fff;background:var(--accent);border-color:var(--accent);}
+  .fav-list{max-height:420px;overflow-y:auto;margin:0 -6px;padding:0 6px;}
+  .fav-row{display:flex;align-items:flex-start;gap:8px;padding:11px 4px;border-bottom:1px solid var(--line);animation:fadeUp .4s ease both;}
+  .fav-row:last-child{border-bottom:none;}
+  .fav-meta{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-2);margin-top:4px;}
+  .fav-del{
+    flex-shrink:0;width:26px;height:26px;border-radius:8px;margin-top:2px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text-2);transition:all .2s ease;
+  }
+  .fav-del:hover{color:#ef4444;background:rgba(239,68,68,.1);}
+
+  /* ===== 热点趋势 ===== */
+  .trend-row{display:flex;align-items:center;gap:10px;padding:9px 2px;}
+  .trend-rank{width:20px;font-size:13px;font-weight:700;color:var(--text-2);flex-shrink:0;}
+  .trend-row:nth-child(-n+3) .trend-rank{color:var(--accent);}
+  .trend-name{font-size:13px;font-weight:600;flex-shrink:0;}
+  .trend-bar{flex:1;height:6px;border-radius:6px;background:rgba(43,47,58,.07);overflow:hidden;}
+  .trend-bar i{display:block;height:100%;border-radius:6px;background:linear-gradient(90deg,#8b5cf6,#3b82f6);transition:width .8s cubic-bezier(.25,.8,.25,1);}
+  .trend-count{font-size:11px;color:var(--text-2);flex-shrink:0;}
+
+  /* ===== 阅读统计 ===== */
+  .stat-strip{display:flex;gap:8px;margin-bottom:6px;}
+  .stat-cell{
+    flex:1;background:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.9);
+    border-radius:14px;padding:11px 6px;text-align:center;
+    transition:transform .25s ease,box-shadow .25s ease;
+  }
+  .stat-cell:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(52,63,96,.1);}
+  .stat-num{font-size:20px;font-weight:700;letter-spacing:-.02em;}
+  .stat-num.purple{color:var(--accent);}
+  .stat-num.blue{color:var(--blue);}
+  .stat-num.orange{color:var(--orange);}
+  .stat-lab{font-size:11px;color:var(--text-2);margin-top:2px;}
+  .stat-sec{font-size:12px;font-weight:600;color:var(--text-2);margin:14px 0 6px;}
+  .pref-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:12px;}
+  .pref-name{width:64px;flex-shrink:0;font-weight:500;}
+  .pref-bar{flex:1;height:7px;border-radius:7px;background:rgba(43,47,58,.07);overflow:hidden;}
+  .pref-bar i{display:block;height:100%;border-radius:7px;transition:width .8s cubic-bezier(.25,.8,.25,1);}
+  .pref-val{width:24px;text-align:right;color:var(--text-2);font-size:11px;flex-shrink:0;}
+
+  /* ===== 交互增强 ===== */
+  .trend-row{cursor:pointer;border-radius:10px;transition:background .2s ease,transform .2s ease;}
+  .trend-row:hover{background:rgba(108,92,231,.07);transform:translateX(3px);}
+  .trend-row.active .trend-name{color:var(--accent);}
+  .trend-row.active .trend-bar i{background:linear-gradient(90deg,#f59e0b,#f472b6);}
+  .stat-cell{cursor:pointer;}
+  .todo-text{cursor:pointer;}
+  .fav-row a.news-title{color:var(--text);text-decoration:none;transition:color .2s ease;}
+  .fav-row a.news-title:hover{color:var(--accent);}
+  .card.flash{box-shadow:0 0 0 3px rgba(108,92,231,.45), var(--shadow-lift);}
+
+  /* ===== 页内阅读弹层 ===== */
+  .reader-mask{
+    position:fixed;inset:0;z-index:300;
+    background:rgba(30,34,48,.45);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    display:none;justify-content:center;
+    padding:28px 20px;overflow-y:auto;
+  }
+  .reader-mask.show{display:flex;animation:fadeIn .25s ease both;}
+  .reader{
+    width:100%;max-width:680px;margin:auto;
+    background:rgba(255,255,255,.97);
+    border:1px solid var(--border);border-radius:22px;
+    box-shadow:0 24px 60px rgba(40,50,80,.28);
+    padding:26px 28px;animation:fadeUp .3s ease both;
+  }
+  .reader-top{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .reader-date{font-size:12px;color:var(--text-2);}
+  .reader-close{
+    margin-left:auto;width:32px;height:32px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text-2);transition:all .25s ease;flex-shrink:0;
+  }
+  .reader-close:hover{background:rgba(43,47,58,.07);color:var(--text);transform:rotate(90deg);}
+  .reader-title{font-size:21px;font-weight:600;line-height:1.4;letter-spacing:-.01em;margin-bottom:12px;}
+  .reader-body{font-size:15px;line-height:1.85;color:var(--text);}
+  .reader-body p{margin-bottom:12px;}
+  .reader-note{font-size:13px;color:var(--text-2);background:rgba(43,47,58,.04);border-radius:12px;padding:10px 14px;}
+  .reader-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+  #readerFavBtn.on{color:#fff;background:var(--orange);border-color:var(--orange);}
+
+  /* ===== 底部提醒浮标 ===== */
+  .float-tip{
+    position:fixed;right:20px;bottom:20px;z-index:90;
+    display:flex;align-items:center;gap:8px;
+    background:rgba(255,255,255,.85);
+    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+    border:1px solid var(--border);border-radius:980px;
+    padding:10px 18px;font-size:13px;font-weight:500;color:var(--text);
+    box-shadow:var(--shadow);
+    animation:fadeUp .5s ease both;
+    transition:transform .3s ease,box-shadow .3s ease;
+  }
+  .float-tip:hover{transform:translateY(-2px);box-shadow:var(--shadow-lift);}
+  .float-cat{font-size:16px;line-height:1;}
+
+  /* ===== 设置弹窗 ===== */
+  .mask{
+    position:fixed;inset:0;z-index:200;background:rgba(30,34,48,.35);
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+    display:none;align-items:center;justify-content:center;padding:20px;
+  }
+  .mask.show{display:flex;animation:fadeIn .25s ease both;}
+  .modal{
+    width:100%;max-width:400px;
+    background:rgba(255,255,255,.94);border-radius:22px;
+    border:1px solid var(--border);box-shadow:0 24px 60px rgba(40,50,80,.25);
+    padding:24px;animation:fadeUp .3s ease both;
+  }
+  .modal h3{font-size:17px;font-weight:600;margin-bottom:18px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:13px;font-weight:500;color:var(--text-2);margin-bottom:7px;}
+  .field input[type="text"]{
+    width:100%;border:1px solid var(--line);outline:none;background:#fff;
+    border-radius:12px;padding:9px 13px;font-size:14px;color:var(--text);
+    transition:border-color .25s ease,box-shadow .25s ease;
+  }
+  .field input[type="text"]:focus{border-color:rgba(108,92,231,.5);box-shadow:0 0 0 3px rgba(108,92,231,.12);}
+  .field input[type="file"]{font-size:13px;color:var(--text-2);width:100%;}
+  .field input[type="range"]{width:100%;accent-color:var(--accent);}
+  .range-val{font-size:12px;color:var(--text-2);text-align:right;margin-top:3px;}
+  .modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:6px;}
+  .btn-plain{
+    font-size:13px;padding:9px 18px;border-radius:980px;
+    color:var(--text-2);border:1px solid var(--line);transition:all .25s ease;
+  }
+  .btn-plain:hover{color:var(--text);background:rgba(43,47,58,.05);}
+  .btn-main{
+    font-size:13px;font-weight:600;padding:9px 22px;border-radius:980px;color:#fff;
+    background:linear-gradient(135deg,#6c5ce7,#5a8df0);
+    box-shadow:0 4px 14px rgba(108,92,231,.35);transition:all .25s ease;
+  }
+  .btn-main:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(108,92,231,.45);}
+  .btn-danger-link{font-size:12px;color:#ef4444;margin-right:auto;padding:9px 4px;}
+
+  /* ===== 动画 ===== */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+  /* ===== 移动端 ===== */
+  @media (max-width:960px){
+    .board{columns:2;}
+  }
+  @media (max-width:680px){
+    body{font-size:14px;}
+    .topbar{padding:10px 14px 4px;}
+    .topbar-sub{display:none;}
+    .board{columns:1;padding:8px 14px 90px;}
+    .card{padding:16px;}
+    .news-list{max-height:420px;}
+    .panel-inner{padding-left:12px;}
+    .float-tip{right:14px;bottom:calc(14px + env(safe-area-inset-bottom));}
+  }
+</style>
+</head>
+<body>
+
+<div id="bgLayer"></div>
+
+<!-- ===== 顶部导航栏 ===== -->
+<header class="topbar">
+  <div class="topbar-card">
+    <div class="avatar">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>
+    </div>
+    <div>
+      <div class="topbar-title">个人咨询工作台</div>
+      <div class="topbar-sub" id="todayLine"></div>
+    </div>
+    <div class="topbar-right">
+      <div class="sync-pill" id="syncPill"><span class="sync-dot"></span><span id="syncText">已同步</span></div>
+      <button class="icon-btn" id="settingsBtn" title="背景设置" aria-label="背景设置">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.08a1.7 1.7 0 0 0 1.03-1.56V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.08a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1.03z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ===== 三卡片 ===== -->
+<main class="board">
+
+  <!-- 卡片1 · AI 热门 -->
+  <section class="card">
+    <div class="card-head">
+      <div class="card-ico" style="background:linear-gradient(135deg,#8b5cf6,#6c5ce7)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8z"/></svg>
+      </div>
+      <div class="card-title">AI 热门</div>
+      <div class="card-head-right">
+        <button class="ghost on" id="kwChip" data-act="clearKwFilter" style="display:none" title="点击清除筛选"></button>
+        <button class="ghost" id="unreadBtn" data-act="toggleUnreadFilter">只看未读</button>
+        <button class="ghost" id="shuffleBtn" data-no-cache>换一批</button>
+      </div>
+    </div>
+    <div class="news-list" id="newsList"></div>
+    <div class="news-foot">
+      <span>每日 8:00 自动更新<span id="newsUpdated"></span></span>
+      <span id="newsCount"></span>
+    </div>
+  </section>
+
+  <!-- 卡片2 · 稍后读 -->
+  <section class="card">
+    <div class="card-head">
+      <div class="card-ico" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4.5L5 21V4a1 1 0 0 1 1-1z"/></svg>
+      </div>
+      <div class="card-title">稍后读</div>
+      <div class="card-head-right"><span class="count-badge" id="favCount"></span></div>
+    </div>
+    <div class="fav-list" id="favList"></div>
+  </section>
+
+  <!-- 卡片3 · 待办 -->
+  <section class="card">
+    <div class="card-head">
+      <div class="card-ico" style="background:linear-gradient(135deg,#60a5fa,#3b82f6)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8.5 12l2.3 2.3 4.7-4.8"/></svg>
+      </div>
+      <div class="card-title">待办</div>
+      <div class="card-head-right">
+        <span class="count-badge" id="todoCount"></span>
+      </div>
+    </div>
+    <form class="todo-add" id="todoForm">
+      <input type="text" name="todoInput" id="todoInput" placeholder="新增待办，回车快速添加…" autocomplete="off" maxlength="80">
+      <button type="submit">添加</button>
+    </form>
+    <div class="todo-list" id="todoList"></div>
+  </section>
+
+  <!-- 卡片4 · 热点趋势 -->
+  <section class="card">
+    <div class="card-head">
+      <div class="card-ico" style="background:linear-gradient(135deg,#f472b6,#ec4899)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
+      </div>
+      <div class="card-title">热点趋势</div>
+      <div class="card-head-right"><span class="count-badge">关键词热度</span></div>
+    </div>
+    <div id="trendList"></div>
+  </section>
+
+  <!-- 卡片5 · 工具铭 -->
+  <section class="card">
+    <div class="card-head">
+      <div class="card-ico" style="background:linear-gradient(135deg,#2dd4bf,#0ea5a4)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4.5 4.5 0 0 0-6.03 5.36L3 17.3V21h3.7l5.64-5.67A4.5 4.5 0 0 0 17.7 9.3l-2.82 2.83-2.12-.71-.71-2.12z"/></svg>
+      </div>
+      <div class="card-title">工具铭</div>
+      <div class="card-head-right"><span class="count-badge" id="linkCount"></span></div>
+    </div>
+    <div class="entry-row" id="entryRow">
+
+      <div class="entry" data-cat="常用工具">
+        <button class="entry-btn" type="button">
+          <span class="entry-ico" style="background:linear-gradient(135deg,#a78bfa,#8b5cf6)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+          </span>
+          <span class="entry-name">常用工具</span>
+          <svg class="entry-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="entry-panel"><div class="panel-inner">
+          <div class="chip-grid" data-chips="常用工具"></div>
+          <form class="chip-form">
+            <input type="text" name="title" placeholder="软件名称，如：微信" maxlength="30">
+            <input type="text" name="link" placeholder="启动方式/下载链接（可留空）" maxlength="200">
+            <button type="submit">添加到常用工具</button>
+          </form>
+        </div></div>
+      </div>
+
+      <div class="entry" data-cat="常用网站">
+        <button class="entry-btn" type="button">
+          <span class="entry-ico" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9s1.3-6.4 3.8-9z"/></svg>
+          </span>
+          <span class="entry-name">常用网站</span>
+          <svg class="entry-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="entry-panel"><div class="panel-inner">
+          <div class="chip-grid" data-chips="常用网站"></div>
+          <form class="chip-form">
+            <input type="text" name="title" placeholder="网站名称" maxlength="30">
+            <input type="text" name="link" placeholder="网址，如 https://github.com" maxlength="200">
+            <button type="submit">添加到常用网站</button>
+          </form>
+        </div></div>
+      </div>
+
+      <div class="entry" data-cat="音乐收藏">
+        <button class="entry-btn" type="button">
+          <span class="entry-ico" style="background:linear-gradient(135deg,#f472b6,#ec4899)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          </span>
+          <span class="entry-name">音乐收藏</span>
+          <svg class="entry-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="entry-panel"><div class="panel-inner">
+          <div class="chip-grid" data-chips="音乐收藏"></div>
+          <form class="chip-form">
+            <input type="text" name="title" placeholder="歌曲 / 歌单 / 音乐网站名称" maxlength="30">
+            <input type="text" name="link" placeholder="收听链接（可留空）" maxlength="200">
+            <button type="submit">添加到音乐收藏</button>
+          </form>
+        </div></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 卡片6 · 阅读统计 -->
+  <section class="card">
+    <div class="card-head">
+      <div class="card-ico" style="background:linear-gradient(135deg,#60a5fa,#6c5ce7)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="12" y="8" width="3" height="9" rx="1"/><rect x="17" y="13" width="3" height="4" rx="1"/></svg>
+      </div>
+      <div class="card-title">阅读统计</div>
+      <div class="card-head-right"><span class="count-badge">近 7 天</span></div>
+    </div>
+    <div class="stat-strip">
+      <div class="stat-cell" data-act="statRead" title="点击清除所有筛选"><div class="stat-num purple" id="statRead">0</div><div class="stat-lab">已读</div></div>
+      <div class="stat-cell" data-act="statUnread" title="点击只看未读"><div class="stat-num blue" id="statUnread">0</div><div class="stat-lab">未读</div></div>
+      <div class="stat-cell" data-act="statFav" title="点击定位收藏"><div class="stat-num orange" id="statFav">0</div><div class="stat-lab">收藏</div></div>
+    </div>
+    <div class="stat-sec">每日阅读量</div>
+    <div id="weekChart"></div>
+    <div class="stat-sec">关注领域偏好（按已读计）</div>
+    <div id="prefChart"></div>
+  </section>
+</main>
+
+<!-- 底部待办提醒浮标 -->
+<div class="float-tip" id="floatTip" style="display:none">
+  <span class="float-cat">🐱</span>
+  <span id="floatText"></span>
+</div>
+
+<!-- ===== 页内阅读弹层 ===== -->
+<div class="reader-mask" id="readerMask">
+  <div class="reader">
+    <div class="reader-top">
+      <span class="src-chip" id="readerSrc"></span>
+      <span class="reader-date" id="readerDate"></span>
+      <button class="reader-close" id="readerClose" title="关闭" aria-label="关闭">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <h2 class="reader-title" id="readerTitle"></h2>
+    <div class="reader-body" id="readerBody"></div>
+    <div class="reader-actions">
+      <button class="btn-plain" id="readerFavBtn" data-act="toggleFav" data-key="">星标稍后读</button>
+      <a class="btn-main" id="readerLinkBtn" href="#" target="_blank" rel="noopener">查看原文报道</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 背景设置弹窗 ===== -->
+<div class="mask" id="settingsMask">
+  <div class="modal">
+    <h3>背景设置</h3>
+    <div class="field">
+      <label>背景图片链接（https:// 开头的图片地址）</label>
+      <input type="text" id="bgUrlInput" placeholder="粘贴图片链接，留空使用默认渐变">
+    </div>
+    <div class="field">
+      <label>或上传本地图片（自动压缩，存于本机浏览器）</label>
+      <input type="file" id="bgFileInput" accept="image/*">
+    </div>
+    <div class="field">
+      <label>背景不透明度</label>
+      <input type="range" id="bgOpacityInput" min="10" max="100" value="85">
+      <div class="range-val" id="bgOpacityVal">85%</div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-danger-link" id="bgClearBtn">恢复默认</button>
+      <button class="btn-plain" id="settingsCancel">取消</button>
+      <button class="btn-main" id="settingsSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= 数据层 ================= */
+var LS_KEY = 'wb_workspace_v1';
+
+var state = {
+  todos: [],          // {id, text, done, ts}
+  links: [],          // {id, cat, name, url}
+  newsPool: [],       // {t, s, src, d}
+  newsIndex: 0,
+  newsKey: '',
+  newsUpdatedAt: '',
+  newsMeta: {},       // { [新闻标题]: {read: 时间戳或0, fav: 收藏时间戳或0} }
+  filterUnread: false,// 「只看未读」筛选（运行时状态，不持久化）
+  kwFilter: '',       // 热点关键词筛选（运行时状态，不持久化）
+  settings: { bgImage: '', bgOpacity: 85 }
+};
+
+var CATS = ['常用工具','常用网站','音乐收藏'];
+var REFRESH_HOUR = 8;
+
+function save(){
+  try{
+    localStorage.setItem(LS_KEY, JSON.stringify(state));
+    flashSync();
+  }catch(e){}
+}
+function load(){
+  try{
+    var raw = localStorage.getItem(LS_KEY);
+    if(raw){
+      var d = JSON.parse(raw);
+      state.todos = d.todos || [];
+      state.links = d.links || [];
+      state.newsPool = d.newsPool || [];
+      state.newsIndex = d.newsIndex || 0;
+      state.newsKey = d.newsKey || '';
+      state.newsUpdatedAt = d.newsUpdatedAt || '';
+      state.settings = d.settings || {bgImage:'', bgOpacity:85};
+      var hadMeta = d.newsMeta && Object.keys(d.newsMeta).length;
+      state.newsMeta = d.newsMeta || {};
+      if(!hadMeta){ seedNewsMeta(); save(); }  // 老数据迁移：补默认阅读/收藏记录
+      if(state.newsPool.length) return true;
+    }
+  }catch(e){}
+  return false;
+}
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+/* 新闻素材池（含 8:00 自动轮换 + 手动换一批） */
+var DEFAULT_POOL = [
+/*NEWS_POOL_START*/
+{t:'OpenAI 正式发布 GPT-5.5：推理成本下降 60%，Agent 能力全面升级', s:'新模型保持旗舰级推理质量的同时大幅压缩成本，原生工具调用与多步规划显著增强，复杂任务完成率提升 34%，API 同步开放。', b:'据发布会信息，GPT-5.5 通过稀疏激活与推理缓存将单位推理成本压缩 60%，旗舰级推理质量基本无损。原生工具调用链路重写后，多步规划类复杂任务完成率提升 34%。API 价格同步下调，Pro 与企业版即刻可用，免费用户将在未来数周内分批开放。', src:'机器之心', d:'2026-09-12'},
+{t:'英伟达 Blackwell Ultra 全面量产，台积电 3nm 产能锁定至明年', s:'Blackwell Ultra 大模型训练能效较上代提升 2.1 倍，先进制程产能持续紧张，多家云厂商已预订明年全年供应份额。', b:'供应链消息称，Blackwell Ultra 采用台积电 3nm 定制工艺与第六代 NVLink 互联，大模型训练能效较上代提升 2.1 倍。台积电先进封装产能已被英伟达、苹果、AMD 三家锁定至明年年底，云厂商议价空间进一步收窄，算力租赁价格短期难以下行。', src:'芯片情报局', d:'2026-09-12'},
+{t:'特斯拉 FSD v14 分批推送：端到端网络重写，城市 NOA 拟覆盖全国', s:'v14 采用统一端到端架构，取消大部分手工规则，掉头、环岛与施工路段表现明显改善，中国区两周内陆续推送。', b:'v14 将感知、规划、控制统一进单个端到端网络，参数量较 v13 扩大约 4 倍，并引入影子模式持续学习长尾场景。内部测试显示掉头、环岛与施工路段的接管率明显下降。中国区推送分三批进行，首批覆盖 20 个重点城市，用户可在设置中主动申请排队。', src:'36氪', d:'2026-09-12'},
+{t:'谷歌 Gemini 3 Preview 登顶多项基准，上下文窗口达 200 万 token', s:'在数学、代码与多语言理解基准刷新纪录，200 万 token 上下文支持整本书级文档分析，开发者可申请候补体验。', b:'Gemini 3 Preview 在 MMLU-Pro、GPQA 与 HumanEval 等主流基准上刷新纪录，数学与代码能力提升最为显著。200 万 token 上下文支持整本书级文档与数小时音频的一次性分析。谷歌同步开放开发者候补计划，可在 AI Studio 提交申请，商用定价随后另行公布。', src:'量子位', d:'2026-09-11'},
+{t:'华为昇腾 920C 完整规格披露：自研架构升级，单卡算力对标国际旗舰', s:'新一代达芬奇架构与自研 HBM 封装，FP16 算力进入千 TFLOPS 区间，CANN 生态已适配主流大模型训练框架。', b:'920C 基于新一代达芬奇架构，FP16 算力首次进入千 TFLOPS 区间，搭载自研 HBM 封装方案与全互联集群技术。CANN 8.0 已适配主流大模型训练与推理框架，迁移成本进一步降低。运营商与政务云为首批量产客户，四季度起规模化交付。', src:'芯片情报局', d:'2026-09-11'},
+{t:'宇树发布人形机器人 G3：售价 9.9 万元起，首批设备进入工厂实训', s:'全身 31 个自由度、自研一体化关节电机，售价下探至 9.9 万元，已在 3C 装配与物流分拣场景开展产线实训。', b:'G3 全身 31 个自由度，搭载自研一体化关节电机与 3D 激光雷达，售价下探至 9.9 万元起，较上代再降三成。首批数百台设备已进入 3C 装配与物流分拣产线开展实训，重点验证长时间作业的稳定性。官方预计年内完成千台级交付。', src:'机器人大本营', d:'2026-09-11'},
+{t:'IBM 量子计算新突破：1000+ 量子比特错误率首次降至 0.1% 以下', s:'纠错编码取得关键进展，Heron 系列逻辑量子比特寿命延长 8 倍，团队预计 2028 年前实现容错量子计算原型。', b:'IBM 研究团队将 Heron 系列处理器的逻辑量子比特寿命延长 8 倍，错误率首次降至 0.1% 以下，关键在于新型量子纠错编码与实时解码器的配合。论文已发表于《自然》杂志。团队预计 2028 年前建成容错量子计算原型机，化学模拟与密码学为首批应用方向。', src:'学术头条', d:'2026-09-11'},
+{t:'Anthropic 发布 Claude for Enterprise，企业 Agent 市场竞争白热化', s:'提供组织级知识库接入、审计日志与细粒度权限，支持多 Agent 协作编排，发布首周超 200 家企业签约。', b:'Claude for Enterprise 提供组织级知识库接入、审计日志与细粒度权限管理，支持多 Agent 协作编排，并兼容 MCP 工具生态。发布首周已有超 200 家企业签约，金融、法律与咨询行业为主要客户群。业内认为企业级 Agent 市场的竞争已进入白热化阶段。', src:'36氪', d:'2026-09-11'},
+{t:'小米汽车城市领航全量推送，雷军：智能驾驶进入「无图」时代', s:'推送覆盖全国 300+ 城，不依赖高精地图，端到端大模型实时感知建图，复杂路口通过率提升至 98.6%。', b:'此次全量推送覆盖全国 300 余城，不依赖高精地图，由端到端大模型实时感知建图。雷军在发布会上表示，复杂路口通过率提升至 98.6%，「无图」方案将成为全系标配，已交付老车型同步升级。后续还将通过 OTA 持续优化狭窄路段与雨天场景表现。', src:'智驾前沿', d:'2026-09-10'},
+{t:'AI 基础设施融资潮持续：国内大模型创业公司单轮融资超 10 亿美元', s:'头部创业公司估值集体上修，资金主要流向算力集群与数据基础设施，应用层项目投资态度转向谨慎。', b:'国内头部大模型创业公司完成新一轮超 10 亿美元融资，估值集体上修。资金主要投向万卡算力集群与自建数据中心，算力储备成为估值的核心变量。多家机构表示对应用层项目的投资态度转向谨慎，认为基础模型层的规模壁垒仍在加深。', src:'投资界', d:'2026-09-10'},
+{t:'Meta 发布 Llama 4 开源系列：MoE 架构，小尺寸模型跑进手机端', s:'Llama 4 采用混合专家架构，10B 档位可在旗舰手机端侧流畅运行，多语言与长上下文能力大幅增强。', b:'Llama 4 系列采用混合专家（MoE）架构，总参数量大但每次推理仅激活十分之一，10B 档位经量化后可在旗舰手机端侧流畅运行。多语言与长上下文能力大幅增强，中文表现接近第一梯队。权重将在安全评审后开放下载与商用。', src:'量子位', d:'2026-09-10'},
+{t:'Apple Intelligence 正式支持中文，端侧模型全面植入系统应用', s:'iOS 26 中文版端侧模型落地，Siri 深度重构，写作工具与通知摘要全量开放，隐私数据全程端侧处理。', b:'iOS 26 中文版的端侧模型全面落地，Siri 由端侧大模型驱动完成深度重构，支持跨应用操作与多步指令。写作工具、通知摘要与智能回复全量开放。所有请求默认在设备端完成，仅在需要外部知识时经由私密云计算介入，且不与用户身份关联。', src:'36氪', d:'2026-09-09'},
+{t:'微软 Copilot Agent 进入商用：可自主执行跨应用工作流', s:'企业版 Agent 支持读取邮件、整理数据、生成报告并跨应用执行任务，按处理量计费，已开放全球商用。', b:'微软宣布 Copilot Agent 正式进入商用阶段，可自主读取邮件、整理表格数据、生成报告并跨应用执行完整工作流。管理员可设定权限边界与关键节点人工审批。计费模式按处理量计算，已开放全球商用，首月免费额度同步上线。', src:'机器之心', d:'2026-09-09'},
+{t:'AMD MI400 系列量产在即：大内存路线对标英伟达旗舰', s:'288GB HBM4 单卡显存主打大模型推理性价比，多家云厂商完成测试，预计四季度批量出货。', b:'MI400 系列单卡搭载 288GB HBM4 显存，走大显存推理性价比路线，可单卡承载更大参数量的模型实例。多家北美云厂商已完成早期测试，推理吞吐表现符合预期。预计四季度批量出货，直接切入英伟达旗舰产品的推理市场份额。', src:'芯片情报局', d:'2026-09-08'},
+{t:'智元发布具身智能大模型：机器人可理解自然语言直接执行任务', s:'模型打通「语言-感知-动作」链路，无需预编程即可完成家庭与工业场景任务，迁移成功率提升 40%。', b:'智元发布的具身智能大模型打通了「语言-感知-动作」全链路，机器人无需预编程即可理解自然语言指令并直接执行家庭整理、工业上下料等任务。跨场景迁移成功率提升 40%。公司同时宣布将与多家制造企业共建训练数据采集基地，加速真实场景数据积累。', src:'机器人大本营', d:'2026-09-08'}
+/*NEWS_POOL_END*/
+];
+
+function seed(){
+  state.newsPool = DEFAULT_POOL.slice();
+  state.newsIndex = 0;
+  state.newsKey = refreshKey();
+  state.newsUpdatedAt = nowHM();
+  state.todos = [
+    {id:uid(), text:'阅读《高质量公众号文章》并摘录要点', done:false, ts:Date.now()-86400000},
+    {id:uid(), text:'完善个人咨询工作台页面', done:false, ts:Date.now()-43200000},
+    {id:uid(), text:'写周报并同步项目进展', done:false, ts:Date.now()-3600000},
+    {id:uid(), text:'回复合作邮件', done:true, ts:Date.now()-172800000}
+  ];
+  state.links = [
+    {id:uid(), cat:'常用工具', name:'微信', url:''},
+    {id:uid(), cat:'常用工具', name:'Visual Studio Code', url:'https://code.visualstudio.com'},
+    {id:uid(), cat:'常用工具', name:'Notion', url:'https://www.notion.so'},
+    {id:uid(), cat:'常用网站', name:'GitHub', url:'https://github.com'},
+    {id:uid(), cat:'常用网站', name:'知乎', url:'https://www.zhihu.com'},
+    {id:uid(), cat:'常用网站', name:'DeepSeek', url:'https://www.deepseek.com'},
+    {id:uid(), cat:'常用网站', name:'掘金', url:'https://juejin.cn'},
+    {id:uid(), cat:'音乐收藏', name:'网易云音乐', url:'https://music.163.com'},
+    {id:uid(), cat:'音乐收藏', name:'QQ音乐', url:'https://y.qq.com'}
+  ];
+  // 预置阅读/收藏状态：让统计图表与稍后读开箱即有内容
+  seedNewsMeta();
+  save();
+}
+
+/* 阅读记录迁移：给没有 newsMeta 的老数据补一份默认阅读/收藏记录 */
+function seedNewsMeta(){
+  var now = Date.now(), H = 3600000;
+  var idx = [0, 1, 2, 5, 6], spans = [2, 26, 50, 74, 98];
+  state.newsMeta = {};
+  idx.forEach(function(i, j){
+    state.newsMeta[DEFAULT_POOL[i].t] = {read: now - spans[j]*H, fav: j===0 ? now - H : 0};
+  });
+}
+
+/* 8:00 自动刷新：以「当前生效周期」为 key，跨周期自动轮换下一批 5 条 */
+function refreshKey(){
+  var now = new Date();
+  var k = new Date(now);
+  if(now.getHours() < REFRESH_HOUR) k.setDate(k.getDate()-1);
+  return k.getFullYear()+'-'+(k.getMonth()+1)+'-'+k.getDate();
+}
+function nowHM(){
+  var d = new Date(), p = function(n){return n<10?'0'+n:''+n;};
+  return p(d.getHours())+':'+p(d.getMinutes());
+}
+function autoRotate(){
+  var key = refreshKey();
+  if(state.newsKey !== key){
+    state.newsKey = key;
+    state.newsIndex = (state.newsIndex + 5) % Math.max(state.newsPool.length, 5);
+    state.newsUpdatedAt = nowHM();
+    save();
+  }
+}
+function manualRotate(){
+  state.newsIndex = (state.newsIndex + 5) % Math.max(state.newsPool.length, 5);
+  state.newsUpdatedAt = nowHM();
+  save();
+}
+function visibleNews(){
+  var pool = state.newsPool.slice().sort(function(a,b){ return a.d < b.d ? 1 : -1; });
+  var n = Math.min(5, pool.length);
+  var start = state.newsIndex % Math.max(pool.length - n + 1, 1);
+  return pool.slice(start, start + n);
+}
+
+/* ================= 渲染层（互不调用，由 refreshAll 统一调度） ================= */
+var SRC_COLORS = {'机器之心':'#8b5cf6','量子位':'#3b82f6','36氪':'#0ea5a4','芯片情报局':'#f59e0b','机器人大本营':'#ec4899','学术头条':'#14b8a6','智驾前沿':'#6366f1','投资界':'#84cc16'};
+function srcColor(s){ return SRC_COLORS[s] || '#94a3b8'; }
+function esc(x){
+  return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+var CAT_ICONS = {
+  '常用工具':'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  '常用网站':'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.7 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.7-3.8-9s1.3-6.4 3.8-9z"/>',
+  '音乐收藏':'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'
+};
+var CAT_COLORS = {'常用工具':'#8b5cf6','常用网站':'#f59e0b','音乐收藏':'#ec4899'};
+
+function renderToday(){
+  var d = new Date();
+  var wd = ['日','一','二','三','四','五','六'][d.getDay()];
+  document.getElementById('todayLine').textContent =
+    d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日 · 星期'+wd;
+}
+function isRead(n){ var m = state.newsMeta[n.t]; return !!(m && m.read); }
+function isFav(n){ var m = state.newsMeta[n.t]; return !!(m && m.fav); }
+function newsHref(n){
+  if(n.u) return n.u;  // 新闻自带原文链接时直接使用
+  return 'https://www.baidu.com/s?wd=' + encodeURIComponent(n.t + ' ' + n.src);
+}
+function renderNews(){
+  var el = document.getElementById('newsList');
+  var list;
+  if(state.kwFilter){
+    /* 关键词筛选模式：检索整个素材池，按日期倒序 */
+    var def = null;
+    TREND_KWS.forEach(function(d){ if(d.k === state.kwFilter) def = d; });
+    list = state.newsPool.filter(function(n){ return def && (def.re.test(n.t) || def.re.test(n.s)); })
+      .sort(function(a,b){ return a.d < b.d ? 1 : -1; });
+  }else{
+    list = visibleNews();
+    if(state.filterUnread) list = list.filter(function(n){ return !isRead(n); });
+  }
+  el.innerHTML = list.map(function(n, i){
+    var read = isRead(n), fav = isFav(n);
+    var inner =
+      '<div class="news-top">'+
+        '<button class="read-toggle'+(read?' done':'')+'" data-act="toggleRead" data-key="'+esc(n.t)+'" title="'+(read?'标记为未读':'标记为已读')+'" aria-label="切换已读">'+
+          (read
+            ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+            : '<span class="read-dot"></span>')+
+        '</button>'+
+        '<span class="src-chip" style="background:'+srcColor(n.src)+'">'+esc(n.src)+'</span>'+
+        '<span class="news-date">'+esc(n.d)+'</span>'+
+        '<button class="fav-btn'+(fav?' on':'')+'" data-act="toggleFav" data-key="'+esc(n.t)+'" title="稍后读" aria-label="稍后读">'+
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M12 2.8l2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L12 17.37l-5.7 3 1.09-6.36-4.62-4.5 6.38-.92z"/></svg>'+
+        '</button>'+
+      '</div>'+
+      '<a class="news-title" href="'+newsHref(n)+'" target="_blank" rel="noopener" data-news-link data-key="'+esc(n.t)+'" title="点击查看详情">'+esc(n.t)+'</a>'+
+      '<div class="news-summary">'+esc(n.s)+'</div>';
+    return '<div class="news-item'+(read?' read':'')+'" style="animation-delay:'+Math.min(i*0.06,0.3)+'s">'+inner+'</div>';
+  }).join('') || '<div class="empty-tip">'+(state.kwFilter ? '该关键词暂无命中新闻' : '没有未读新闻了，点「换一批」看看')+'</div>';
+  if(state.kwFilter){
+    document.getElementById('newsCount').textContent = '关键词「'+state.kwFilter+'」命中 '+list.length+' 条';
+  }else{
+    var unreadTotal = state.newsPool.filter(function(n){ return !isRead(n); }).length;
+    document.getElementById('newsCount').textContent = '素材池 '+state.newsPool.length+' 条 · 未读 '+unreadTotal;
+  }
+  document.getElementById('newsUpdated').textContent = state.newsUpdatedAt ? ' · 更新于 '+state.newsUpdatedAt : '';
+  var ub = document.getElementById('unreadBtn');
+  if(ub) ub.classList.toggle('on', state.filterUnread);
+  var kc = document.getElementById('kwChip');
+  if(kc){
+    kc.style.display = state.kwFilter ? '' : 'none';
+    kc.textContent = '筛选：'+state.kwFilter+' ✕';
+  }
+}
+function renderTodos(){
+  var el = document.getElementById('todoList');
+  var list = state.todos.slice().sort(function(a,b){
+    return (a.done === b.done) ? (b.ts - a.ts) : (a.done ? 1 : -1);
+  });
+  el.innerHTML = list.map(function(t, i){
+    return '<div class="todo-row'+(t.done?' done':'')+'" style="animation-delay:'+Math.min(i*0.04,0.3)+'s" data-todo="'+t.id+'">'+
+      '<button class="todo-check" data-act="toggleTodo" data-id="'+t.id+'" title="切换完成">'+
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" style="opacity:'+(t.done?1:0)+';transition:opacity .2s"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'+
+      '</button>'+
+      '<span class="todo-text" data-act="toggleTodo" data-id="'+t.id+'" title="点击切换完成">'+esc(t.text)+'</span>'+
+      '<button class="todo-del" data-act="delTodo" data-id="'+t.id+'" title="删除">'+
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>'+
+      '</button>'+
+    '</div>';
+  }).join('') || '<div class="empty-tip">暂无待办，添加一条开始今天吧</div>';
+  var pending = state.todos.filter(function(t){return !t.done;}).length;
+  document.getElementById('todoCount').textContent = state.todos.length ? (pending+'/'+state.todos.length) : '';
+  var tip = document.getElementById('floatTip');
+  if(pending){
+    tip.style.display = '';
+    document.getElementById('floatText').textContent = '还有 '+pending+' 个待办事项待处理';
+  }else{
+    tip.style.display = 'none';
+  }
+}
+function renderLinks(){
+  var count = document.getElementById('linkCount');
+  count.textContent = state.links.length ? state.links.length+' 项' : '';
+  CATS.forEach(function(cat){
+    var box = document.querySelector('[data-chips="'+cat+'"]');
+    var list = state.links.filter(function(l){return l.cat===cat;});
+    box.innerHTML = list.map(function(l){
+      if(l.url){
+        return '<a class="chip" href="'+esc(l.url)+'" target="_blank" rel="noopener" data-link="'+l.id+'">'+esc(l.name)+
+          '<span class="chip-del" data-act="delLink" data-id="'+l.id+'">✕</span></a>';
+      }
+      return '<span class="chip plain" data-link="'+l.id+'">'+esc(l.name)+
+        '<span class="chip-del" data-act="delLink" data-id="'+l.id+'">✕</span></span>';
+    }).join('') || '<span style="font-size:12px;color:var(--text-2)">还没有内容，在下方添加</span>';
+  });
+}
+function fmtTs(ts){
+  var d = new Date(ts), p = function(n){return n<10?'0'+n:''+n;};
+  return (d.getMonth()+1)+'月'+d.getDate()+'日 '+p(d.getHours())+':'+p(d.getMinutes());
+}
+function renderFavs(){
+  var el = document.getElementById('favList');
+  var list = state.newsPool.filter(isFav).sort(function(a,b){
+    return state.newsMeta[b.t].fav - state.newsMeta[a.t].fav;
+  });
+  document.getElementById('favCount').textContent = list.length ? list.length+' 条' : '';
+  el.innerHTML = list.map(function(n, i){
+    return '<div class="fav-row" style="animation-delay:'+Math.min(i*0.05,0.3)+'s">'+
+      '<div style="flex:1;min-width:0">'+
+        '<a class="news-title" href="'+newsHref(n)+'" target="_blank" rel="noopener" data-news-link data-key="'+esc(n.t)+'" title="点击阅读详情">'+esc(n.t)+'</a>'+
+        '<div class="fav-meta">'+
+          '<span class="src-chip" style="background:'+srcColor(n.src)+';font-size:10px;padding:1px 6px;">'+esc(n.src)+'</span>'+
+          '<span>收藏于 '+fmtTs(state.newsMeta[n.t].fav)+'</span>'+
+        '</div>'+
+      '</div>'+
+      '<button class="fav-del" data-act="toggleFav" data-key="'+esc(n.t)+'" title="移出稍后读">'+
+        '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>'+
+      '</button>'+
+    '</div>';
+  }).join('') || '<div class="empty-tip">在新闻卡片右上角点亮星标，即可稍后阅读</div>';
+}
+
+/* 热点关键词词典：命中标题或摘要即计入热度 */
+var TREND_KWS = [
+  {k:'大模型',    re:/大模型|LLM|GPT|Gemini|Claude|Llama|Copilot|token/i},
+  {k:'芯片半导体', re:/芯片|制程|HBM|算力|英伟达|AMD|昇腾|3nm|量产|晶圆/i},
+  {k:'自动驾驶',  re:/自动驾驶|智驾|FSD|领航|NOA/i},
+  {k:'机器人',    re:/机器人|具身|人形/i},
+  {k:'量子计算',  re:/量子/i},
+  {k:'AI Agent', re:/Agent|智能体/i},
+  {k:'开源生态',  re:/开源|开放/i},
+  {k:'端侧 AI',  re:/端侧|手机端|端到端/i}
+];
+function kwHits(filterRead){
+  return TREND_KWS.map(function(kw){
+    var c = state.newsPool.filter(function(n){
+      if(filterRead && !isRead(n)) return false;
+      return kw.re.test(n.t) || kw.re.test(n.s);
+    }).length;
+    return {k:kw.k, c:c};
+  }).filter(function(x){ return x.c > 0; })
+    .sort(function(a,b){ return b.c - a.c; });
+}
+function renderTrends(){
+  var el = document.getElementById('trendList');
+  var rows = kwHits(false).slice(0, 6);
+  var max = Math.max.apply(null, rows.map(function(r){return r.c;}).concat([1]));
+  el.innerHTML = rows.map(function(r, i){
+    return '<div class="trend-row'+(state.kwFilter===r.k?' active':'')+'" data-act="filterKw" data-id="'+esc(r.k)+'" title="点击筛选相关新闻">'+
+      '<span class="trend-rank">'+(i+1)+'</span>'+
+      '<span class="trend-name">'+esc(r.k)+'</span>'+
+      '<span class="trend-bar"><i style="width:'+(r.c/max*100)+'%;transition-delay:'+(i*0.08)+'s"></i></span>'+
+      '<span class="trend-count">'+r.c+' 条</span>'+
+    '</div>';
+  }).join('') || '<div class="empty-tip">暂无热点数据</div>';
+}
+function renderStats(){
+  var total = state.newsPool.length;
+  var readCnt = state.newsPool.filter(isRead).length;
+  var favCnt = state.newsPool.filter(isFav).length;
+  document.getElementById('statRead').textContent = readCnt;
+  document.getElementById('statUnread').textContent = Math.max(total - readCnt, 0);
+  document.getElementById('statFav').textContent = favCnt;
+
+  /* 近 7 天每日阅读量：手写 SVG 柱状图 */
+  var days = [];
+  for(var i=6; i>=0; i--){
+    var d = new Date(Date.now() - i*86400000);
+    days.push({
+      label:(d.getMonth()+1)+'/'+d.getDate(),
+      start:new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(),
+      cnt:0
+    });
+  }
+  Object.keys(state.newsMeta).forEach(function(k){
+    var r = state.newsMeta[k].read;
+    if(!r) return;
+    for(var j=0; j<7; j++){
+      if(r >= days[j].start && r < days[j].start + 86400000){ days[j].cnt++; break; }
+    }
+  });
+  var maxC = Math.max.apply(null, days.map(function(d){return d.cnt;}).concat([1]));
+  var W=280, H=112, bw=22, gap=(W-7*bw)/6, base=H-26;
+  var s = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+
+          '<defs><linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">'+
+          '<stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#3b82f6"/>'+
+          '</linearGradient></defs>';
+  days.forEach(function(d, i){
+    var h = d.cnt ? Math.max(Math.round(d.cnt/maxC*(base-16)), 6) : 4;
+    var x = i*(bw+gap), y = base-h;
+    s += '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+h+'" rx="5" fill="'+(d.cnt?'url(#barGrad)':'rgba(43,47,58,.08)')+'"/>';
+    if(d.cnt) s += '<text x="'+(x+bw/2)+'" y="'+(y-6)+'" text-anchor="middle" font-size="10" font-weight="600" fill="#8a90a0">'+d.cnt+'</text>';
+    s += '<text x="'+(x+bw/2)+'" y="'+(H-8)+'" text-anchor="middle" font-size="10" fill="#8a90a0">'+d.label+'</text>';
+  });
+  s += '</svg>';
+  document.getElementById('weekChart').innerHTML = s;
+
+  /* 关注领域偏好：按已读新闻归类 */
+  var prefs = kwHits(true).slice(0, 5);
+  var maxP = Math.max.apply(null, prefs.map(function(p){return p.c;}).concat([1]));
+  var palette = ['#8b5cf6','#3b82f6','#0ea5a4','#f59e0b','#ec4899'];
+  document.getElementById('prefChart').innerHTML = prefs.map(function(p, i){
+    return '<div class="pref-row">'+
+      '<span class="pref-name">'+esc(p.k)+'</span>'+
+      '<span class="pref-bar"><i style="width:'+(p.c/maxP*100)+'%;background:'+palette[i%palette.length]+';transition-delay:'+(i*0.08)+'s"></i></span>'+
+      '<span class="pref-val">'+p.c+'</span>'+
+    '</div>';
+  }).join('') || '<div style="font-size:12px;color:var(--text-2)">先去读几条新闻，这里会出现你的偏好画像</div>';
+}
+
+function applyBg(){
+  var layer = document.getElementById('bgLayer');
+  if(state.settings.bgImage){
+    layer.style.backgroundImage = 'url("'+state.settings.bgImage+'")';
+    layer.style.opacity = (state.settings.bgOpacity/100).toFixed(2);
+  }else{
+    layer.style.opacity = 0;
+  }
+}
+function renderSync(saving){
+  var pill = document.getElementById('syncPill');
+  pill.className = 'sync-pill' + (saving ? ' saving' : '');
+  document.getElementById('syncText').textContent = saving ? '保存中…' : '已同步';
+}
+var syncTimer = null;
+function flashSync(){
+  renderSync(true);
+  clearTimeout(syncTimer);
+  syncTimer = setTimeout(function(){ renderSync(false); }, 700);
+}
+
+/* 统一刷新入口：渲染函数之间绝不互调 */
+function refreshAll(){
+  renderToday();
+  renderNews();
+  renderTodos();
+  renderLinks();
+  renderFavs();
+  renderTrends();
+  renderStats();
+  applyBg();
+  renderSync(false);
+}
+
+/* ================= 表单本地缓存（DSDK 风格规范，防误刷新丢失） ================= */
+function cacheKey(field){ return 'wb_ws_cache_' + field; }
+function bindCache(input, field){
+  if(!input) return;
+  try{
+    var saved = localStorage.getItem(cacheKey(field));
+    if(saved && !input.value) input.value = saved;
+  }catch(e){}
+  var timer = null;
+  input.addEventListener('input', function(){
+    clearTimeout(timer);
+    timer = setTimeout(function(){
+      try{ localStorage.setItem(cacheKey(field), input.value); }catch(e){}
+    }, 300);
+  });
+}
+function clearCache(field){
+  try{ localStorage.removeItem(cacheKey(field)); }catch(e){}
+}
+
+/* ================= 事件（统一委托，改数据后 refreshAll） ================= */
+document.addEventListener('click', function(e){
+  // 点击新闻标题：页内打开阅读弹层并自动标记已读；Ctrl/⌘/Shift+点击保留新标签外开
+  var nl = e.target.closest('a[data-news-link]');
+  if(nl){
+    if(e.ctrlKey || e.metaKey || e.shiftKey) return;  // 不拦截，走默认新标签
+    e.preventDefault();
+    openReader(nl.getAttribute('data-key'));
+    return;
+  }
+  var el = e.target.closest('[data-act]');
+  if(el){
+    var act = el.getAttribute('data-act');
+    var id = el.getAttribute('data-id') || el.getAttribute('data-key');
+    if(act === 'toggleTodo'){
+      state.todos.forEach(function(t){ if(t.id===id) t.done = !t.done; });
+      save(); refreshAll(); return;
+    }
+    if(act === 'delTodo'){
+      state.todos = state.todos.filter(function(t){return t.id!==id;});
+      save(); refreshAll(); return;
+    }
+    if(act === 'delLink'){
+      e.preventDefault(); e.stopPropagation();
+      state.links = state.links.filter(function(l){return l.id!==id;});
+      save(); refreshAll(); return;
+    }
+    if(act === 'toggleRead'){
+      var m1 = state.newsMeta[id] || (state.newsMeta[id] = {});
+      m1.read = m1.read ? 0 : Date.now();
+      save(); refreshAll(); renderReaderIfOpen(); return;
+    }
+    if(act === 'toggleFav'){
+      e.preventDefault(); e.stopPropagation();
+      var m2 = state.newsMeta[id] || (state.newsMeta[id] = {});
+      m2.fav = m2.fav ? 0 : Date.now();
+      save(); refreshAll(); renderReaderIfOpen(); return;
+    }
+    if(act === 'toggleUnreadFilter'){
+      state.filterUnread = !state.filterUnread;
+      refreshAll(); return;
+    }
+    if(act === 'filterKw'){
+      state.kwFilter = (state.kwFilter === id) ? '' : id;
+      refreshAll(); return;
+    }
+    if(act === 'clearKwFilter'){
+      state.kwFilter = '';
+      refreshAll(); return;
+    }
+    if(act === 'statUnread'){
+      state.filterUnread = !state.filterUnread;
+      refreshAll(); return;
+    }
+    if(act === 'statRead'){
+      state.kwFilter = '';
+      state.filterUnread = false;
+      refreshAll(); return;
+    }
+    if(act === 'statFav'){
+      var favCard = document.getElementById('favList').closest('.card');
+      favCard.scrollIntoView({behavior:'smooth', block:'center'});
+      favCard.classList.add('flash');
+      setTimeout(function(){ favCard.classList.remove('flash'); }, 1200);
+      return;
+    }
+  }
+  // 入口面板：点击标题展开/收起（桌面端另支持悬停展开）
+  var btn = e.target.closest('.entry-btn');
+  if(btn){
+    var entry = btn.closest('.entry');
+    var wasOpen = entry.classList.contains('open');
+    document.querySelectorAll('.entry.open').forEach(function(x){ x.classList.remove('open'); });
+    if(!wasOpen) entry.classList.add('open');
+    return;
+  }
+  if(e.target.closest('#shuffleBtn')){ manualRotate(); refreshAll(); }
+});
+
+/* 悬停展开（仅精确指针设备） */
+if(window.matchMedia && matchMedia('(hover:hover) and (pointer:fine)').matches){
+  document.querySelectorAll('.entry').forEach(function(entry){
+    entry.addEventListener('mouseenter', function(){
+      document.querySelectorAll('.entry.open').forEach(function(x){ if(x!==entry) x.classList.remove('open'); });
+      entry.classList.add('open');
+    });
+  });
+}
+
+/* 待办表单 */
+document.getElementById('todoForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var inp = document.getElementById('todoInput');
+  var v = inp.value.trim();
+  if(!v) return;
+  state.todos.unshift({id:uid(), text:v, done:false, ts:Date.now()});
+  inp.value = '';
+  clearCache('todoInput');
+  save(); refreshAll();
+});
+bindCache(document.getElementById('todoInput'), 'todoInput');
+
+/* 收藏表单（三个面板共用逻辑） */
+document.querySelectorAll('.entry').forEach(function(entry){
+  var cat = entry.getAttribute('data-cat');
+  var form = entry.querySelector('.chip-form');
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var name = form.querySelector('[name="title"]').value.trim();
+    var url = form.querySelector('[name="link"]').value.trim();
+    if(!name) return;
+    if(url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+    state.links.unshift({id:uid(), cat:cat, name:name, url:url});
+    form.querySelector('[name="title"]').value = '';
+    form.querySelector('[name="link"]').value = '';
+    clearCache('title'); clearCache('link');
+    save(); refreshAll();
+    entry.classList.add('open');
+  });
+  bindCache(form.querySelector('[name="title"]'), 'title');
+  bindCache(form.querySelector('[name="link"]'), 'link');
+});
+
+/* ================= 背景设置 ================= */
+var mask = document.getElementById('settingsMask');
+document.getElementById('settingsBtn').addEventListener('click', function(){
+  document.getElementById('bgUrlInput').value = state.settings.bgImage.indexOf('data:')===0 ? '' : state.settings.bgImage;
+  document.getElementById('bgOpacityInput').value = state.settings.bgOpacity;
+  document.getElementById('bgOpacityVal').textContent = state.settings.bgOpacity + '%';
+  mask.classList.add('show');
+});
+document.getElementById('settingsCancel').addEventListener('click', function(){ mask.classList.remove('show'); });
+mask.addEventListener('click', function(e){ if(e.target === mask) mask.classList.remove('show'); });
+document.getElementById('bgOpacityInput').addEventListener('input', function(){
+  document.getElementById('bgOpacityVal').textContent = this.value + '%';
+});
+document.getElementById('bgFileInput').addEventListener('change', function(){
+  var file = this.files && this.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(){
+    var img = new Image();
+    img.onload = function(){
+      var w = Math.min(img.naturalWidth, 800);
+      var h = Math.round(img.naturalHeight * w / img.naturalWidth);
+      var cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      document.getElementById('bgUrlInput').value = '(本地图片已就绪，点保存生效)';
+      document.getElementById('bgUrlInput').dataset.pending = cv.toDataURL('image/jpeg', 0.82);
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById('bgClearBtn').addEventListener('click', function(){
+  state.settings = {bgImage:'', bgOpacity:85};
+  save(); refreshAll();
+  mask.classList.remove('show');
+});
+document.getElementById('settingsSave').addEventListener('click', function(){
+  var urlInput = document.getElementById('bgUrlInput');
+  var bg = urlInput.dataset.pending || urlInput.value.trim();
+  if(bg && urlInput.dataset.pending) delete urlInput.dataset.pending;
+  state.settings.bgImage = bg;
+  state.settings.bgOpacity = parseInt(document.getElementById('bgOpacityInput').value, 10) || 85;
+  save(); refreshAll();
+  mask.classList.remove('show');
+});
+
+/* ================= 页内阅读弹层 ================= */
+function renderReaderIfOpen(){
+  var mask = document.getElementById('readerMask');
+  if(mask && mask.classList.contains('show')) renderReader(state.readerKey);
+}
+function renderReader(key){
+  var n = null;
+  state.newsPool.forEach(function(x){ if(x.t === key) n = x; });
+  if(!n) return;
+  var m = state.newsMeta[key] || {};
+  var srcEl = document.getElementById('readerSrc');
+  srcEl.textContent = n.src;
+  srcEl.style.background = srcColor(n.src);
+  document.getElementById('readerDate').textContent = n.d + (m.read ? ' · 已读' : ' · 未读');
+  document.getElementById('readerTitle').textContent = n.t;
+  document.getElementById('readerBody').innerHTML = n.b
+    ? '<p>'+esc(n.b)+'</p>'
+    : '<p>'+esc(n.s)+'</p><p class="reader-note">完整内容未收录，点击右下角按钮查看原文报道。</p>';
+  var favBtn = document.getElementById('readerFavBtn');
+  favBtn.setAttribute('data-key', key);
+  favBtn.classList.toggle('on', !!m.fav);
+  favBtn.textContent = m.fav ? '已收藏 · 点击移出' : '星标稍后读';
+  document.getElementById('readerLinkBtn').href = newsHref(n);
+  state.readerKey = key;
+}
+function openReader(key){
+  var m = state.newsMeta[key] || (state.newsMeta[key] = {});
+  if(!m.read){ m.read = Date.now(); save(); refreshAll(); }
+  renderReader(key);
+  document.getElementById('readerMask').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeReader(){
+  document.getElementById('readerMask').classList.remove('show');
+  document.body.style.overflow = '';
+}
+document.getElementById('readerClose').addEventListener('click', closeReader);
+var readerMaskEl = document.getElementById('readerMask');
+readerMaskEl.addEventListener('click', function(e){ if(e.target === readerMaskEl) closeReader(); });
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeReader(); });
+
+/* 老数据正文迁移：为存量新闻按标题补上内置正文 */
+function mergeBodies(){
+  var map = {};
+  DEFAULT_POOL.forEach(function(n){ if(n.b) map[n.t] = n.b; });
+  state.newsPool.forEach(function(n){ if(!n.b && map[n.t]) n.b = map[n.t]; });
+}
+
+/* ================= 初始化 ================= */
+if(!load()) seed();
+autoRotate();
+mergeBodies();
+refreshAll();
+
+})();
+</script>
+</body>
+</html>

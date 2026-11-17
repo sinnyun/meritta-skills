@@ -1,0 +1,14 @@
+{
+  "id": "game-maker",
+  "version": "1.0.0",
+  "i18n": {
+    "zh-CN": {
+      "name": "游戏开发",
+      "description": "专业游戏架构师，将用户抽象需求转化为完整可玩的2D/3D小游戏；支持游戏闭环设计、状态管理、碰撞检测、粒子特效；覆盖贪吃蛇、打砖块、俄罗斯方块、3D跑酷、3D射击、3D赛车等全类型。"
+    },
+    "en-US": {
+      "name": "Game Maker",
+      "description": "Professional game architect that transforms abstract requirements into fully playable 2D/3D web games; supports game loop design, state management, collision detection, particle effects; covers Snake, Breakout, Tetris, 3D parkour, 3D shooter, 3D racing and more."
+    }
+  }
+}

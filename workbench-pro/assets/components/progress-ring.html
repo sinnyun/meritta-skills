@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!-- 组件预览页：进度环 progress-ring（复制区见两个标记行之间） -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>组件预览：进度环</title>
+</head>
+<body style="background:#f5f6fa;margin:0;padding:24px;font-family:-apple-system,'PingFang SC',sans-serif">
+<!-- ⬇ 组件代码开始：整段复制到骨架的模块槽 -->
+<style>
+.pr-wrap{display:flex;align-items:center;gap:18px}
+.pr-ring{flex-shrink:0}
+.pr-ring circle{transition:stroke-dashoffset .6s ease}
+.pr-meta{flex:1}
+.pr-num{font-size:28px;font-weight:700;color:var(--c-primary,#4f6ef7);line-height:1.2}
+.pr-num small{font-size:14px;font-weight:400}
+.pr-label{font-size:13px;color:var(--c-sub,#8a90a0);margin-top:2px}
+</style>
+<section class="card" style="background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(31,36,48,.06);padding:16px">
+  <div class="pr-wrap">
+    <svg class="pr-ring" id="pr-ring-1" width="96" height="96" viewBox="0 0 96 96" data-label="今日完成度">
+      <circle cx="48" cy="48" r="40" fill="none" stroke="var(--c-line,#eceef3)" stroke-width="10"/>
+      <circle class="pr-bar" cx="48" cy="48" r="40" fill="none" stroke="var(--c-primary,#4f6ef7)"
+              stroke-width="10" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3"
+              transform="rotate(-90 48 48)"/>
+      <text class="pr-txt" x="48" y="54" text-anchor="middle" font-size="20" font-weight="700"
+            fill="var(--c-text,#1f2430)">0%</text>
+    </svg>
+    <div class="pr-meta">
+      <div class="pr-num" id="pr-num-1">0<small> / 100</small></div>
+      <div class="pr-label" id="pr-label-1">今日完成度</div>
+    </div>
+  </div>
+</section>
+<script>
+/* 进度环：ProgressRing.init(el) 后用 ProgressRing.set(el, 0-100) 更新 */
+const ProgressRing = {
+  C: 2 * Math.PI * 40, // 周长，r=40
+  init(el){
+    el.querySelector('.pr-bar').setAttribute('stroke-dasharray', this.C.toFixed(1));
+    this.set(el, 0);
+  },
+  set(el, val){
+    val = Math.max(0, Math.min(100, Number(val) || 0));
+    el.querySelector('.pr-bar').setAttribute('stroke-dashoffset', (this.C * (1 - val/100)).toFixed(1));
+    el.querySelector('.pr-txt').textContent = Math.round(val) + '%';
+  }
+};
+</script>
+<!-- ⬆ 组件代码结束 -->
+
+<script>
+/* 预览演示：模拟数值动画 */
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('pr-ring-1');
+  ProgressRing.init(el);
+  let v = 0;
+  const timer = setInterval(() => {
+    v += 4; ProgressRing.set(el, v);
+    document.getElementById('pr-num-1').innerHTML = v + '<small> / 100</small>';
+    if(v >= 72) clearInterval(timer);
+  }, 30);
+});
+</script>
+</body>
+</html>

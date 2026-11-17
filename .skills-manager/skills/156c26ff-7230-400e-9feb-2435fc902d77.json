@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "156c26ff-7230-400e-9feb-2435fc902d77",
+  "path": "ppt-expert",
+  "path_key": "ppt-expert",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

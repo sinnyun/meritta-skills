@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<!-- ============================================================
+  工作台工程骨架 base-shell.html  ·  workbench-pro skill 资产
+  用法：复制本文件为起点，修改 APP 配置与主题色，替换两个模块槽，
+  骨架逻辑（Store / refreshAll / 今日区 / 导出导入 / 备份提醒）一行不删。
+  存储层使用 wb_ 前缀隔离，数据存 localStorage，零外部依赖。
+============================================================ -->
+<html lang="zh-CN" data-page-node-id="UfVJcqQodhZN1cZe946B2A">
+<head data-page-node-id="4GIr4dUHrjuyFoPHylkcjl">
+<meta charset="UTF-8" data-page-node-id="Csb8EABujqv4vzraX1kpMQ">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" data-page-node-id="cGJ4TLyXpJVuG2hjudzcGG">
+<title>示例工作台</title>
+<style>
+/* ========== 第 1 层：设计令牌（固定结构，可换主题色值） ========== */
+:root{
+  --c-primary:#4f6ef7;         /* 主题色：整体换色只改这里和 --c-primary-soft */
+  --c-primary-soft:#eef1fe;
+  --c-bg:#f5f6fa;              /* 页面底色 */
+  --c-card:#ffffff;            /* 卡片底色 */
+  --c-text:#1f2430;            /* 主文字 */
+  --c-sub:#8a90a0;             /* 次要文字 */
+  --c-line:#eceef3;            /* 分隔线 */
+  --c-danger:#e5484d; --c-danger-soft:#fdecec;   /* 逾期/支出 */
+  --c-ok:#18a058;    --c-ok-soft:#e8f7ef;         /* 成功/收入 */
+  --c-warn:#f59e0b;  --c-warn-soft:#fef4e6;      /* 提醒/顺延 */
+  --radius:16px; --radius-s:10px;
+  --shadow:0 2px 12px rgba(31,36,48,.06);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+  background:var(--c-bg);color:var(--c-text);line-height:1.5;
+}
+.page{max-width:1100px;margin:0 auto;padding:24px 28px calc(36px + env(safe-area-inset-bottom))}
+/* ========== 主内容网格：桌面优先双列，窄屏降级单列 ========== */
+.main-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
+.main-grid .col{display:flex;flex-direction:column;gap:14px;min-width:0}
+@media (max-width:860px){
+  .page{padding:16px 16px calc(28px + env(safe-area-inset-bottom))}
+  .main-grid{grid-template-columns:minmax(0,1fr)}
+}
+
+/* ========== 顶栏 ========== */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+.topbar h1{font-size:20px;letter-spacing:.5px}
+.topbar .sub{font-size:12px;color:var(--c-sub)}
+.top-actions{display:flex;gap:8px}
+.icon-btn{
+  min-width:44px;min-height:44px;border:1px solid var(--c-line);border-radius:var(--radius-s);
+  background:var(--c-card);display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.icon-btn svg{width:20px;height:20px;stroke:var(--c-sub);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.icon-btn:active{background:var(--c-primary-soft)}
+
+/* ========== 通用卡片 ========== */
+.card{background:var(--c-card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-head h2{font-size:16px;display:flex;align-items:center;gap:8px}
+.card-head h2 svg{width:18px;height:18px;stroke:var(--c-primary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.card-head .hint{font-size:12px;color:var(--c-sub)}
+.empty{padding:22px 0;text-align:center;color:var(--c-sub);font-size:13px}
+
+/* ========== 今日要处理区（骨架固定模块） ========== */
+.today-list{display:flex;flex-direction:column;gap:8px}
+.today-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius-s);
+  background:var(--c-bg);font-size:14px;
+}
+.today-item.overdue{background:var(--c-danger-soft);color:var(--c-danger)}
+.today-item.defer{border-left:3px solid var(--c-warn)}
+.today-item .t-title{flex:1;min-width:0}
+.today-item .t-title span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.today-item .t-meta{font-size:11px;color:var(--c-sub);margin-top:2px}
+.today-item.overdue .t-meta{color:var(--c-danger);opacity:.75}
+.badge{font-size:10px;padding:2px 7px;border-radius:99px;flex-shrink:0}
+.badge.overdue{background:var(--c-danger);color:#fff}
+.badge.defer{background:var(--c-warn-soft);color:var(--c-warn)}
+.badge.today{background:var(--c-primary-soft);color:var(--c-primary)}
+.mini-btn{
+  min-width:44px;min-height:36px;padding:0 12px;border:none;border-radius:8px;cursor:pointer;
+  background:var(--c-primary);color:#fff;font-size:12px;flex-shrink:0;
+}
+.mini-btn:active{opacity:.85}
+
+/* ========== 备份提醒条 ========== */
+.backup-tip{
+  display:none;align-items:center;gap:8px;padding:10px 12px;margin-bottom:14px;
+  border-radius:var(--radius-s);background:var(--c-warn-soft);color:var(--c-warn);font-size:12px;
+}
+.backup-tip.show{display:flex}
+.backup-tip button{margin-left:auto;border:none;background:none;color:var(--c-warn);cursor:pointer;font-size:12px;min-height:44px}
+
+/* ========== 模块槽占位说明（集成时删除本段） ========== */
+.slot-note{border:2px dashed var(--c-line);border-radius:var(--radius);padding:18px;color:var(--c-sub);font-size:13px;margin-bottom:14px;text-align:center}
+
+/* ========== 底部说明 ========== */
+.foot{text-align:center;color:var(--c-sub);font-size:11px;padding:6px 0 2px}
+</style>
+</head>
+<body data-page-node-id="CJ5SZUrqGRI0CyGyF6Y6cw">
+<div class="page" data-page-node-id="J6mvT6j2Uuw7Hj030x2uJc">
+
+  <!-- 顶栏 -->
+  <header class="topbar" data-page-node-id="fFy9YV8Vz1h1wCO5mzm93J">
+    <div data-page-node-id="e1qAdeEZqJI1DEHonlRPEv">
+      <h1 id="app-title" data-page-node-id="pfixFqF2IDf7l6N2pg5FFK">示例工作台</h1>
+      <div class="sub" id="app-sub" data-page-node-id="WyNRMAgHA3n9aNBnwUixNG">数据保存在本机浏览器</div>
+    </div>
+    <div class="top-actions" data-page-node-id="7ylY5DnKQ4QMM2sTjCxolK">
+      <button class="icon-btn" id="btn-export" title="导出 JSON 备份" aria-label="导出备份" data-page-node-id="CLxH7KN3EscCLunEaYZcY9">
+        <svg viewBox="0 0 24 24" data-page-node-id="cwyGA3WtuBCZiymuiuGVEJ"><path d="M12 3v12M7 10l5 5 5-5M4 21h16" data-page-node-id="os930Td0YGZ5dcKZXMUjGE"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-import" title="导入恢复" aria-label="导入恢复" data-page-node-id="dUS8NjVKrU4GGXj9upclII">
+        <svg viewBox="0 0 24 24" data-page-node-id="YZmyRJiRx9UABBVSqVJacI"><path d="M12 15V3M7 8l5-5 5 5M4 21h16" data-page-node-id="AnvNDOmAMemmKAhjYbN1Xd"/></svg>
+      </button>
+      <button class="icon-btn" id="btn-clear" title="清空示例数据" aria-label="清空示例数据" data-page-node-id="EJrOpkdwMF5PGj9ynGhUVL">
+        <svg viewBox="0 0 24 24" data-page-node-id="pNf1uw8edlF61rBjo6EsPC"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" data-page-node-id="r61PtmXDd3fubRzOruYNMK"/></svg>
+      </button>
+      <input type="file" id="file-import" accept=".json" style="display:none" data-page-node-id="HBFrbHGUh0WBN7tqYSydvM">
+    </div>
+  </header>
+
+  <!-- 备份提醒条（满 30 条自动出现） -->
+  <div class="backup-tip" id="backup-tip" data-page-node-id="KxgLQeVJtVWGAB32eh1ZN8">
+    <span data-page-node-id="Tpq3vK3UCT8dUaJAU5Cmlf">数据已积累较多，建议导出 JSON 备份一份</span>
+    <button id="btn-tip-close" data-page-node-id="TNYfMDcFzprqjZLvdZwvKb">知道了</button>
+  </div>
+
+  <!-- ========== 主内容网格：桌面优先（今日区主列 + 模块副列），窄屏自动单列 ========== -->
+  <div class="main-grid">
+    <div class="col">
+
+  <!-- ========== 骨架固定模块：今日要处理 ========== -->
+  <section class="card" data-page-node-id="mDv0yJTA7EkYlB807QVzJK">
+    <div class="card-head" data-page-node-id="SbeJcS6Q75WQ8jflSvMZt2">
+      <h2 data-page-node-id="eGotw8FWDPfyDTUNLPTSur"><svg viewBox="0 0 24 24" data-page-node-id="ook1uDelsPThfNrUrj9mxH"><circle cx="12" cy="12" r="9" data-page-node-id="g4YWz1YMJQiWjgAoFneXeR"/><path d="M12 7v5l3 3" data-page-node-id="T0788O4VlDovtc6aJmWHbb"/></svg>今日要处理</h2>
+      <span class="hint" id="today-count" data-page-node-id="AlP2EJZrXoKnSjcWUabx8s"></span>
+    </div>
+    <div class="today-list" id="today-list" data-page-node-id="Ll8qSDDrCFxHhSr8CTmVOq"></div>
+  </section>
+
+    </div>
+    <div class="col">
+
+  <!-- ========== 模块槽 1：集成时删除占位说明，粘贴组件 ========== -->
+  <!-- 示例：进度环 <section class="card" id="mod-progress">… -->
+  <div class="slot-note" data-page-node-id="cNlJUqwipKhhCIHJq443AN">模块槽 1（粘贴组件片段）</div>
+
+  <!-- ========== 模块槽 2 ========== -->
+  <div class="slot-note" data-page-node-id="dcEJdeheXH8pOaR6L3GCrT">模块槽 2（粘贴组件片段）</div>
+
+    </div>
+  </div>
+
+  <div class="foot" data-page-node-id="ow2IpbFfeHFnBo2Fh5LZxX">本工作台数据仅存于本机浏览器 · 记得定期导出备份</div>
+</div>
+
+<script>
+'use strict';
+/* ========== APP 配置（每个工作台唯一需要改的头部） ========== */
+const APP = {
+  id: 'demo',                    // localStorage 前缀标识，英文短横线
+  title: '示例工作台',
+  backupRemindCount: 30,         // 主数据达到该条数时提示备份
+};
+
+/* ========== 第 2 层：存储层（固定，不许删改） ========== */
+const Store = {
+  key(k){ return 'wb_' + APP.id + '_' + k; },
+  get(k, fallback){
+    try{
+      const v = localStorage.getItem(this.key(k));
+      return v === null ? fallback : JSON.parse(v);
+    }catch(e){ return fallback; }
+  },
+  set(k, v){
+    try{ localStorage.setItem(this.key(k), JSON.stringify(v)); }
+    catch(e){ console.error('存储失败(空间不足?)', e); }
+  },
+  mainCount(){ return Array.isArray(state.todos) ? state.todos.length : 0; },
+};
+function esc(s){
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* ========== 日期工具（统一入口，禁止散落拼接） ========== */
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function addDays(dateStr, n){
+  const [y,m,dd] = dateStr.split('-').map(Number);
+  const d = new Date(y, m-1, dd + n);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function fmtCN(dateStr){
+  const [,m,dd] = dateStr.split('-').map(Number);
+  return m + '月' + dd + '日';
+}
+
+/* ========== 状态（第 4 层业务字段在此扩展） ========== */
+let state = {
+  todos: [],   // {id, title, due:'YYYY-MM-DD', done:false, tag:''}
+};
+
+function loadData(){
+  state.todos = Store.get('todos', null);
+  if(!state.todos){ state.todos = seedData(); Store.set('todos', state.todos); }
+  // 向后兼容：补默认字段
+  state.todos = state.todos.map(t => ({
+    id: t.id || ('t' + Date.now() + Math.random().toString(36).slice(2,6)),
+    title: t.title || '未命名事项',
+    due: t.due || todayStr(),
+    done: !!t.done,
+    tag: t.tag || '',
+  }));
+}
+function seedData(){
+  const t = todayStr();
+  return [
+    {id:'s1', title:'带宝宝复习"山水火木"四个字', due:addDays(t,-2), done:false, tag:'启蒙'},   // 逾期示例
+    {id:'s2', title:'整理本周项目周报',            due:addDays(t,-1), done:false, tag:'工作'},   // 昨日顺延示例
+    {id:'s3', title:'晚饭后散步 30 分钟',          due:t,             done:false, tag:'健康'},
+    {id:'s4', title:'给爸妈打电话',                due:t,             done:false, tag:'家庭'},
+    {id:'s5', title:'预缴下月物业费',              due:addDays(t,3),  done:false, tag:'财务'},
+  ];
+}
+
+/* ========== 渲染层：今日要处理（只读 state，不触发其他渲染） ========== */
+function renderToday(){
+  const t = todayStr();
+  const list = document.getElementById('today-list');
+  const items = state.todos.filter(x => !x.done);
+
+  // 计算层：四档互斥分类——逾期(早于昨天) / 顺延(=昨天) / 今天 / 未来三天
+  const yest   = addDays(t, -1);
+  const overdue = items.filter(x => x.due < yest);
+  const defer   = items.filter(x => x.due === yest);
+  const today   = items.filter(x => x.due === t);
+  const soon    = items.filter(x => x.due > t && x.due <= addDays(t,3))
+                       .sort((a,b) => a.due < b.due ? -1 : 1);
+  const shown = [
+    ...overdue.map(x => ({...x, cls:'overdue', badge:'逾期',  bcls:'overdue'})),
+    ...defer.map(   x => ({...x, cls:'defer',   badge:'顺延',  bcls:'defer'})),
+    ...today.map(   x => ({...x, cls:'',        badge:'今天',  bcls:'today'})),
+    ...soon.map(    x => ({...x, cls:'',        badge:fmtCN(x.due), bcls:'today'})),
+  ];
+
+  document.getElementById('today-count').textContent =
+    shown.length ? ('共 ' + shown.length + ' 项待处理') : '';
+
+  if(!shown.length){
+    list.innerHTML = '<div class="empty">今日无事，享受清爽 ✓</div>';
+    return;
+  }
+  list.innerHTML = shown.map(x =>
+    '<div class="today-item ' + x.cls + '" data-id="' + esc(x.id) + '">' +
+      '<span class="badge ' + x.bcls + '">' + esc(x.badge) + '</span>' +
+      '<div class="t-title"><span>' + esc(x.title) + '</span>' +
+        '<div class="t-meta">' + esc(x.tag || '待办') + ' · 截止 ' + fmtCN(x.due) + '</div></div>' +
+      '<button class="mini-btn" data-act="done">完成</button>' +
+    '</div>'
+  ).join('');
+}
+
+/* ========== 渲染层：备份提醒 ========== */
+function renderBackupHint(){
+  const tip = document.getElementById('backup-tip');
+  const dismissed = Store.get('backup_tip_dismissed_for', '');
+  tip.classList.toggle('show', Store.mainCount() >= APP.backupRemindCount && dismissed !== todayStr());
+}
+
+/* ========== 统一刷新入口（唯一的全量渲染调度点） ========== */
+function refreshAll(){
+  renderToday();
+  renderBackupHint();
+  // 新模块的 renderXxx 在此追加，严禁在渲染函数内部互相调用
+}
+
+/* ========== 事件处理：改数据 → refreshAll ========== */
+document.getElementById('today-list').addEventListener('click', e => {
+  const btn = e.target.closest('[data-act="done"]');
+  if(!btn) return;
+  const item = e.target.closest('.today-item');
+  const todo = state.todos.find(x => x.id === item.dataset.id);
+  if(todo){ todo.done = true; Store.set('todos', state.todos); refreshAll(); }
+});
+
+/* 导出 JSON 备份 */
+document.getElementById('btn-export').addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = APP.id + '-backup-' + todayStr() + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+/* 导入恢复（不限条数，导入前校验） */
+document.getElementById('btn-import').addEventListener('click', () => document.getElementById('file-import').click());
+document.getElementById('file-import').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const data = JSON.parse(reader.result);
+      if(!data || !Array.isArray(data.todos)) throw new Error('格式不符');
+      state.todos = data.todos;                       // 以文件为准整包恢复
+      Store.set('todos', state.todos);
+      refreshAll();
+    }catch(err){ alert('导入失败：不是本工作台的有效备份文件'); }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+/* 清空示例数据（二次确认） */
+document.getElementById('btn-clear').addEventListener('click', () => {
+  if(!confirm('确定清空全部数据吗？此操作不可恢复，建议先导出备份。')) return;
+  if(!confirm('再次确认：真的要清空吗？')) return;
+  state.todos = [];
+  Store.set('todos', state.todos);
+  refreshAll();
+});
+document.getElementById('btn-tip-close').addEventListener('click', () => {
+  Store.set('backup_tip_dismissed_for', todayStr());
+  renderBackupHint();
+});
+
+/* ========== 初始化（固定顺序：加载数据 → 统一渲染） ========== */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('app-title').textContent = APP.title;
+  loadData();
+  refreshAll();
+});
+</script>
+</body>
+</html>

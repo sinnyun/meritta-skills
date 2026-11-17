@@ -1,0 +1,2349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>考研备考工作台</title>
+<!--
+  考研备考工作台 · 单文件工作台
+  ============================================================
+  存储方案：单文件 HTML + 浏览器本地存储（localStorage），离线可用；
+           已同步部署为在线页面，便于多设备打开访问。
+  ------------------------------------------------------------
+  数据模型按 6 张数据表结构建模（便于后续接入云端数据表实现双向同步）：
+    · 任务表      tasks        → localStorage key: wb_kaoyan_tasks
+    · 每日作息表  routines     → localStorage key: wb_kaoyan_routines
+    · 专注记录表  focusLogs    → localStorage key: wb_kaoyan_focus
+    · 刷题记录表  questionLogs → localStorage key: wb_kaoyan_questions
+    · 时政内容表  affairs      → localStorage key: wb_kaoyan_affairs
+    · 设置表      settings     → localStorage key: wb_kaoyan_settings
+    · （辅助）摘录本地缓存      → localStorage key: wb_kaoyan_ocr
+  ------------------------------------------------------------
+  全内联零外链：无任何外部框架 / CDN / 字体 / 图表库。
+  所有图表（进度环 / 柱状图 / 堆叠柱状图 / 热力图）与图标均为内联 SVG 手写。
+  视觉：孟菲斯风格 —— 奶黄色底、粗黑描边、高饱和色块、硬阴影。
+-->
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{font-size:16px}
+  :root{
+    --bg:#FFF6D6;          /* 奶黄底 */
+    --ink:#16110B;         /* 近黑描边 */
+    --paper:#FFFDF3;       /* 卡片纸 */
+    --shadow:#16110B;
+    --red:#FF5A5F;
+    --orange:#FF8A3D;
+    --yellow:#FFC93C;
+    --green:#2ED573;
+    --teal:#26C6A8;
+    --blue:#4D8BFF;
+    --purple:#B15CFF;
+    --pink:#FF7BC2;
+    --muted:#7A6A52;
+    --line:3px solid var(--ink);
+    --sh:5px 5px 0 var(--ink);
+    --sh-sm:3px 3px 0 var(--ink);
+    --r:16px;
+  }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Roboto,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  button,input,select,textarea{font-family:inherit;color:inherit}
+  button{cursor:pointer}
+  /* ---- 背景装饰（孟菲斯点点/条纹） ---- */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;
+    background-image:radial-gradient(var(--ink) 1.4px, transparent 1.5px);
+    background-size:26px 26px;opacity:.06;
+  }
+
+  /* ============ 布局 ============ */
+  .layout{position:relative;z-index:1;display:flex;min-height:100vh}
+  .sidebar{
+    width:242px;flex:none;background:var(--paper);border-right:var(--line);
+    display:flex;flex-direction:column;position:sticky;top:0;height:100vh;z-index:40;
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:16px 16px 14px;border-bottom:var(--line)}
+  .brand .logo{width:44px;height:44px;flex:none;border:var(--line);border-radius:14px;background:var(--yellow);display:grid;place-items:center;box-shadow:var(--sh-sm)}
+  .brand h1{font-size:1.06rem;font-weight:900;letter-spacing:.5px;line-height:1.15}
+  .brand .sub{font-size:.66rem;color:var(--muted);font-weight:700;margin-top:3px}
+  .nav{padding:10px;overflow-y:auto;flex:1}
+  .nav-group{font-size:.66rem;font-weight:900;color:var(--muted);letter-spacing:1px;padding:12px 10px 6px}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+    padding:10px 12px;margin-bottom:6px;border:2px solid transparent;border-radius:12px;
+    background:transparent;font-size:.9rem;font-weight:800;min-height:44px;
+  }
+  .nav-item svg{width:19px;height:19px;flex:none}
+  .nav-item:hover{background:var(--bg);border-color:var(--ink)}
+  .nav-item.active{background:var(--ink);color:var(--paper);border-color:var(--ink);box-shadow:var(--sh-sm);transform:translate(-1px,-1px)}
+  .nav-item .nbadge{margin-left:auto;background:var(--red);color:#fff;border:2px solid var(--ink);border-radius:999px;font-size:.66rem;font-weight:900;padding:1px 7px;line-height:1.5}
+  .nav-item.active .nbadge{border-color:var(--paper)}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{
+    display:flex;align-items:center;gap:10px;padding:12px 18px;border-bottom:var(--line);
+    background:var(--paper);position:sticky;top:0;z-index:30;flex-wrap:wrap;
+  }
+  .hamb{display:none;width:44px;height:44px;border:var(--line);border-radius:12px;background:var(--yellow);box-shadow:var(--sh-sm);place-items:center}
+  .hamb svg{width:22px;height:22px}
+  .page-title{font-size:1.1rem;font-weight:900;display:flex;align-items:center;gap:8px}
+  .page-title .dot{width:12px;height:12px;border-radius:4px;border:2px solid var(--ink);display:inline-block}
+  .topbar .spacer{flex:1}
+  .sync{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:800;border:2px solid var(--ink);border-radius:999px;padding:5px 11px;background:var(--bg)}
+  .sync .dot2{width:9px;height:9px;border-radius:50%;border:2px solid var(--ink)}
+  .sync.off{background:#FFE1E1}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    min-height:44px;padding:9px 14px;border:var(--line);border-radius:12px;
+    background:var(--paper);font-weight:900;font-size:.84rem;box-shadow:var(--sh-sm);
+    transition:transform .06s ease;
+  }
+  .btn:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink)}
+  .btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+  .btn svg{width:16px;height:16px}
+  .btn.primary{background:var(--yellow)}
+  .btn.green{background:var(--green);color:#08310F}
+  .btn.red{background:var(--red);color:#fff}
+  .btn.blue{background:var(--blue);color:#fff}
+  .btn.sm{min-height:34px;padding:5px 10px;font-size:.76rem;border-width:2px;border-radius:9px;box-shadow:2px 2px 0 var(--ink)}
+  .btn.ghost{background:transparent;box-shadow:none;border-style:dashed}
+  .btn.ghost:hover{box-shadow:none;transform:none}
+
+  .content{padding:18px;flex:1}
+  .view{display:none;animation:pop .18s ease}
+  .view.active{display:block}
+  @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ============ 卡片 ============ */
+  .card{background:var(--paper);border:var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:16px;margin-bottom:16px}
+  .card.tight{padding:13px}
+  .card-title{display:flex;align-items:center;gap:9px;font-weight:900;font-size:1rem;margin-bottom:12px}
+  .card-title .ic{width:30px;height:30px;border:var(--line);border-radius:9px;display:grid;place-items:center;flex:none;box-shadow:2px 2px 0 var(--ink)}
+  .card-title .ic svg{width:17px;height:17px}
+  .card-title .right{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .ov-hero{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+  .muted{color:var(--muted)}
+  .mini{font-size:.76rem;font-weight:700}
+
+  /* ============ 倒计时 ============ */
+  .count-card{background:var(--ink);color:var(--paper);border:var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:18px;position:relative;overflow:hidden}
+  .count-card .blob{position:absolute;width:150px;height:150px;border-radius:50%;right:-46px;top:-46px;background:var(--yellow);opacity:.95;border:var(--line)}
+  .count-card .blob2{position:absolute;width:74px;height:74px;right:64px;bottom:-30px;background:var(--teal);opacity:.95;border:var(--line);border-radius:20px;transform:rotate(18deg)}
+  .count-card .clabel{font-size:.78rem;font-weight:800;letter-spacing:2px;opacity:.85;position:relative}
+  .count-card .cnum{font-size:4.1rem;font-weight:900;line-height:1;position:relative;letter-spacing:-2px;text-shadow:4px 4px 0 rgba(255,255,255,.16)}
+  .count-card .cnum small{font-size:1.1rem;margin-left:6px;letter-spacing:0}
+  .count-card .cmeta{position:relative;margin-top:8px;font-size:.8rem;font-weight:800}
+  .count-chips{display:flex;gap:8px;margin-top:12px;position:relative;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;gap:5px;border:2px solid var(--ink);border-radius:999px;padding:4px 10px;font-size:.72rem;font-weight:900;background:var(--paper);color:var(--ink)}
+  .chip.y{background:var(--yellow)} .chip.t{background:var(--teal)} .chip.r{background:var(--red);color:#fff} .chip.b{background:var(--blue);color:#fff} .chip.g{background:var(--green);color:#08310F}
+
+  /* 语录 */
+  .quote-card{background:var(--pink);border:var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:16px;display:flex;flex-direction:column;justify-content:space-between;min-height:100%}
+  .quote-card .q{font-size:.98rem;font-weight:900;line-height:1.55}
+  .quote-card .a{margin-top:10px;font-size:.74rem;font-weight:800;opacity:.8;text-align:right}
+
+  /* ============ 列表 / 任务 ============ */
+  .list{display:flex;flex-direction:column;gap:10px}
+  .row{display:flex;align-items:center;gap:10px;background:var(--paper);border:2.5px solid var(--ink);border-radius:12px;padding:10px 12px;box-shadow:3px 3px 0 var(--ink)}
+  .row.overdue{background:#FFE3E3;border-color:var(--red);box-shadow:3px 3px 0 var(--red)}
+  .row.done{background:#EAF7EF;opacity:.85}
+  .row .grow{flex:1;min-width:0}
+  .row .t{font-weight:900;font-size:.9rem;line-height:1.35;word-break:break-word}
+  .row.done .t{text-decoration:line-through;color:var(--muted)}
+  .row .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+  .tag{font-size:.68rem;font-weight:900;border:2px solid var(--ink);border-radius:999px;padding:1px 8px}
+  .tag.p0{background:var(--red);color:#fff} .tag.p1{background:var(--orange)} .tag.p2{background:var(--blue);color:#fff}
+  .tag.date{background:var(--paper)} .tag.od{background:var(--red);color:#fff}
+  .checkbox{width:26px;height:26px;flex:none;border:2.5px solid var(--ink);border-radius:8px;background:#fff;display:grid;place-items:center;box-shadow:2px 2px 0 var(--ink)}
+  .checkbox svg{width:16px;height:16px;display:none}
+  .checkbox.on{background:var(--green)}
+  .checkbox.on svg{display:block}
+  .empty{text-align:center;padding:26px 10px;color:var(--muted);font-weight:800;font-size:.86rem}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .fbtn{min-height:38px;padding:6px 13px;border:2.5px solid var(--ink);border-radius:999px;background:var(--paper);font-weight:900;font-size:.8rem;box-shadow:2px 2px 0 var(--ink)}
+  .fbtn.active{background:var(--ink);color:var(--paper)}
+  .searchbox{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+
+  /* ============ 表单 ============ */
+  .field{display:flex;flex-direction:column;gap:5px;margin-bottom:11px}
+  .field label{font-size:.76rem;font-weight:900;color:var(--muted)}
+  input[type=text],input[type=number],input[type=date],input[type=time],select,textarea{
+    font-size:16px;padding:10px 12px;border:2.5px solid var(--ink);border-radius:11px;background:#fff;font-weight:700;width:100%;
+  }
+  textarea{min-height:96px;resize:vertical;line-height:1.5}
+  input:focus,select:focus,textarea:focus{outline:none;box-shadow:var(--sh-sm)}
+  .frow{display:grid;gap:10px}
+  .frow.c2{grid-template-columns:1fr 1fr}
+  .frow.c3{grid-template-columns:1fr 1fr 1fr}
+
+  /* ============ 作息 ============ */
+  .slot{display:flex;align-items:center;gap:11px;padding:11px;border:2.5px solid var(--ink);border-radius:12px;background:var(--paper);box-shadow:3px 3px 0 var(--ink);margin-bottom:10px}
+  .slot.done{background:#EAF7EF}
+  .slot .time{font-weight:900;font-size:.8rem;background:var(--yellow);border:2px solid var(--ink);border-radius:8px;padding:4px 8px;flex:none;min-width:88px;text-align:center}
+  .slot .grow{flex:1;min-width:0}
+  .slot .lbl{font-weight:900;font-size:.9rem}
+  .slot .cat{font-size:.68rem;font-weight:800;color:var(--muted);margin-top:2px}
+  .slot .now{background:var(--teal);color:#062;font-size:.62rem;font-weight:900;border:2px solid var(--ink);border-radius:999px;padding:1px 7px;margin-left:6px}
+
+  /* ============ 时间轴 ============ */
+  .tl{position:relative;padding-left:8px}
+  .tl-item{position:relative;padding:0 0 16px 30px;border-left:3px dashed var(--ink);margin-left:9px}
+  .tl-item:last-child{border-left-color:transparent;padding-bottom:0}
+  .tl-item::before{content:"";position:absolute;left:-11px;top:2px;width:19px;height:19px;border:3px solid var(--ink);border-radius:50%;background:var(--paper)}
+  .tl-item.done::before{background:var(--green)}
+  .tl-item.current::before{background:var(--yellow);box-shadow:0 0 0 4px rgba(255,201,60,.5)}
+  .tl-card{background:var(--paper);border:2.5px solid var(--ink);border-radius:12px;box-shadow:3px 3px 0 var(--ink);padding:11px 12px}
+  .tl-item.current .tl-card{background:#FFF7DC}
+  .tl-card .h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .tl-card .nm{font-weight:900;font-size:.92rem}
+  .tl-card .dt{font-size:.72rem;font-weight:900;color:var(--muted)}
+  .tl-card .desc{font-size:.78rem;font-weight:700;margin-top:5px;line-height:1.5;color:#4a3f2d}
+
+  /* ============ 看板 / 热力图 ============ */
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .cal .hd{text-align:center;font-size:.7rem;font-weight:900;color:var(--muted);padding-bottom:3px}
+  .cal .cell{aspect-ratio:1/1;border:2px solid var(--ink);border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:.72rem;font-weight:900;position:relative}
+  .cal .cell.blank{border-color:transparent;background:transparent}
+  .cal .cell.today{outline:3px solid var(--red);outline-offset:1px}
+  .cal .cell .lv{position:absolute;bottom:2px;width:60%;height:4px;border-radius:3px;background:var(--ink);opacity:.25}
+  .affair{display:flex;gap:11px;padding:11px;border:2.5px solid var(--ink);border-radius:12px;background:var(--paper);box-shadow:3px 3px 0 var(--ink);margin-bottom:10px}
+  .affair .af-ic{width:38px;height:38px;flex:none;border:2.5px solid var(--ink);border-radius:10px;display:grid;place-items:center;font-weight:900}
+  .affair .af-t{font-weight:900;font-size:.9rem;line-height:1.35}
+  .affair .af-s{font-size:.76rem;font-weight:700;color:#4a3f2d;margin-top:4px;line-height:1.5}
+  .affair .af-m{font-size:.68rem;font-weight:800;color:var(--muted);margin-top:6px;display:flex;gap:8px;flex-wrap:wrap}
+  .affair.read{opacity:.6}
+
+  /* ============ 专注 ============ */
+  .focus-hero{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .timer-card{background:var(--teal);border:var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:18px;text-align:center}
+  .timer-card .tt{font-size:.78rem;font-weight:900;letter-spacing:2px;opacity:.75}
+  .timer-card .clock{font-size:3.5rem;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1;letter-spacing:-1px}
+  .timer-card .tsk{font-size:.82rem;font-weight:900;margin-top:4px;min-height:1.2em}
+  .timer-btns{display:flex;gap:9px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+  .ring-wrap{display:flex;align-items:center;gap:16px}
+  .ring-wrap .big{font-size:1.7rem;font-weight:900}
+  .stat{background:var(--paper);border:2.5px solid var(--ink);border-radius:12px;box-shadow:3px 3px 0 var(--ink);padding:12px;text-align:center}
+  .stat .v{font-size:1.6rem;font-weight:900;line-height:1.1}
+  .stat .k{font-size:.72rem;font-weight:800;color:var(--muted);margin-top:4px}
+  .break-banner{background:var(--red);color:#fff;border:var(--line);border-radius:12px;box-shadow:var(--sh-sm);padding:10px 14px;font-weight:900;font-size:.86rem;margin-bottom:12px;display:none}
+  .break-banner.show{display:block;animation:pop .2s ease}
+
+  /* ============ 刷题 ============ */
+  .chart-box{overflow-x:auto;padding-bottom:4px}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:.74rem;font-weight:900}
+  .legend i{width:13px;height:13px;border:2px solid var(--ink);border-radius:3px;display:inline-block;vertical-align:-2px;margin-right:5px}
+  table.qt{width:100%;border-collapse:separate;border-spacing:0;font-size:.82rem;font-weight:700}
+  table.qt th,table.qt td{border-bottom:2px solid var(--ink);padding:9px 8px;text-align:left}
+  table.qt th{font-size:.72rem;font-weight:900;background:var(--yellow)}
+  table.qt tr:last-child td{border-bottom:2px solid var(--ink)}
+  .acc-pill{font-weight:900;font-size:.74rem;border:2px solid var(--ink);border-radius:999px;padding:1px 9px;display:inline-block}
+
+  /* ============ OCR ============ */
+  .drop{border:3px dashed var(--ink);border-radius:14px;background:#fff;padding:22px;text-align:center;font-weight:800;font-size:.86rem;color:var(--muted)}
+  .drop.has{padding:10px}
+  .drop img{max-width:100%;max-height:260px;border:2.5px solid var(--ink);border-radius:11px}
+  .ocr-item{display:flex;gap:10px;border:2.5px solid var(--ink);border-radius:12px;background:var(--paper);box-shadow:3px 3px 0 var(--ink);padding:10px;margin-bottom:10px}
+  .ocr-item .txt{flex:1;font-size:.82rem;font-weight:700;white-space:pre-wrap;line-height:1.5;word-break:break-word}
+
+  /* ============ 工具 ============ */
+  .tool-card{background:var(--purple);color:#fff;border:var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:16px}
+  .tool-card h3{font-size:.98rem;font-weight:900;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .tool-card h3 svg{width:19px;height:19px}
+  .pick-result{background:#fff;color:var(--ink);border:var(--line);border-radius:12px;padding:14px;font-weight:900;font-size:.92rem;text-align:center;min-height:64px;display:flex;align-items:center;justify-content:center;line-height:1.4}
+  .breathe{width:132px;height:132px;margin:14px auto;border-radius:50%;border:var(--line);background:var(--teal);box-shadow:var(--sh);display:grid;place-items:center;font-weight:900;transition:transform 4s ease,background .5s}
+  .cardflip{perspective:800px;height:150px;cursor:pointer}
+  .cardflip .inner{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+  .cardflip.on .inner{transform:rotateY(180deg)}
+  .cardflip .face{position:absolute;inset:0;backface-visibility:hidden;border:var(--line);border-radius:14px;box-shadow:var(--sh-sm);display:grid;place-items:center;padding:14px;text-align:center;font-weight:900;font-size:.92rem}
+  .cardflip .front{background:var(--yellow)}
+  .cardflip .back{background:var(--paper);transform:rotateY(180deg);font-size:.82rem;line-height:1.5}
+  .cdown{font-size:2.4rem;font-weight:900;font-variant-numeric:tabular-nums;text-align:center}
+
+  /* ============ 设置 ============ */
+  .set-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:2px dashed rgba(22,17,11,.25);flex-wrap:wrap}
+  .set-row:last-child{border-bottom:none}
+  .set-row .lbl{font-weight:900;font-size:.86rem}
+  .set-row .desc{font-size:.74rem;font-weight:700;color:var(--muted);margin-top:2px}
+  .set-row .right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .swatches{display:flex;gap:8px;flex-wrap:wrap}
+  .sw{width:34px;height:34px;border:2.5px solid var(--ink);border-radius:10px;box-shadow:2px 2px 0 var(--ink)}
+  .sw.on{outline:3px solid var(--ink);outline-offset:2px}
+
+  /* ============ 弹窗 ============ */
+  .modal-wrap{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(22,17,11,.5)}
+  .modal-wrap.show{display:flex}
+  .modal{background:var(--bg);border:var(--line);border-radius:18px;box-shadow:8px 8px 0 var(--ink);width:100%;max-width:460px;max-height:88vh;overflow-y:auto;padding:18px}
+  .modal h3{font-size:1.02rem;font-weight:900;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .modal h3 .x{margin-left:auto;width:34px;height:34px;border:2.5px solid var(--ink);border-radius:9px;background:var(--red);color:#fff;display:grid;place-items:center;font-weight:900;line-height:1}
+  .modal-foot{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+  .modal-foot .btn{flex:1;min-width:110px}
+  .toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:var(--paper);padding:11px 18px;border-radius:12px;font-weight:900;font-size:.84rem;z-index:200;opacity:0;pointer-events:none;transition:.25s;border:2px solid var(--paper)}
+  .toast.show{opacity:1;transform:translateX(-50%)}
+  .backdrop{position:fixed;inset:0;background:rgba(22,17,11,.45);z-index:35;display:none}
+  .backdrop.show{display:block}
+
+  /* ============ 响应式 ============ */
+  @media (max-width:980px){ .g4{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:768px){
+    .sidebar{position:fixed;left:0;top:0;transform:translateX(-104%);transition:transform .25s ease;box-shadow:8px 0 0 rgba(22,17,11,.15)}
+    .sidebar.open{transform:none}
+    .hamb{display:grid}
+    .content{padding:14px 12px calc(24px + env(safe-area-inset-bottom))}
+    .ov-hero{grid-template-columns:1fr}
+    .focus-hero{grid-template-columns:1fr}
+    .g2,.g3,.g4{grid-template-columns:1fr}
+    .frow.c2,.frow.c3{grid-template-columns:1fr}
+    .count-card .cnum{font-size:3.3rem}
+    .page-title{font-size:1rem}
+    .topbar{padding:10px 12px;gap:8px}
+    .ring-wrap{flex-direction:column;text-align:center}
+    table.qt{font-size:.78rem}
+  }
+  @media (max-width:420px){ .g4{grid-template-columns:repeat(2,1fr)} }
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- ================= 侧边导航 ================= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="logo">
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#16110B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h7M9 11h5"/>
+        </svg>
+      </span>
+      <div>
+        <h1>考研备考工作台</h1>
+        <div class="sub">KAOYAN · 上岸作战室</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-group">总览</div>
+      <button class="nav-item active" data-view="overview">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        总览
+      </button>
+      <button class="nav-item" data-view="routine">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        每日作息
+      </button>
+      <button class="nav-item" data-view="timeline">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h6M14 6h6M4 12h10M4 18h5M18 18h2"/><circle cx="12" cy="6" r="1.6"/><circle cx="17" cy="12" r="1.6"/><circle cx="11" cy="18" r="1.6"/></svg>
+        阶段时间轴
+      </button>
+      <div class="nav-group">执行</div>
+      <button class="nav-item" data-view="board">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M3 9h18M9 9v12M15 13h3M15 17h3"/></svg>
+        备考看板
+      </button>
+      <button class="nav-item" data-view="tasks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        任务管理<span class="nbadge" id="nb-task" style="display:none">0</span>
+      </button>
+      <button class="nav-item" data-view="focus">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>
+        专注模式
+      </button>
+      <button class="nav-item" data-view="questions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        刷题统计
+      </button>
+      <div class="nav-group">工具</div>
+      <button class="nav-item" data-view="ocr">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>
+        OCR 识别
+      </button>
+      <button class="nav-item" data-view="tools">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a4 4 0 0 0 5 5l-9.5 9.5a2.1 2.1 0 0 1-3-3z"/><path d="M17 3l4 4"/></svg>
+        进阶工具
+      </button>
+      <button class="nav-item" data-view="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 4.6 15a2 2 0 1 1 0-4 1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 11.5 4a2 2 0 1 1 4 0 1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 19.4 11a2 2 0 1 1 0 4z"/></svg>
+        设置
+      </button>
+    </nav>
+  </aside>
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- ================= 主区域 ================= -->
+  <div class="main">
+    <header class="topbar">
+      <button class="hamb" id="hamb" aria-label="菜单">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.4" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <div class="page-title"><span class="dot" id="pt-dot" style="background:var(--yellow)"></span><span id="pt-text">总览</span></div>
+      <div class="spacer"></div>
+      <span class="sync off" id="syncBadge" title="当前为浏览器本地存储（离线模式）">
+        <span class="dot2" style="background:var(--red)"></span><span id="syncText">离线模式 · 本地存储</span>
+      </span>
+      <button class="btn sm primary" id="btnExport" title="导出 JSON 备份">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>导出
+      </button>
+      <button class="btn sm" id="btnImport" title="导入 JSON 备份">导入</button>
+      <input type="file" id="fileImport" accept=".json,application/json" style="display:none">
+    </header>
+
+    <div class="content">
+      <div id="backupHint" class="card tight" style="display:none;background:#FFF7DC">
+        <span class="mini" id="backupHintText"></span>
+      </div>
+
+      <!-- ============ 1 总览 ============ -->
+      <section class="view active" id="view-overview">
+        <div class="ov-hero" style="margin-bottom:16px">
+          <div class="count-card">
+            <span class="blob"></span><span class="blob2"></span>
+            <div class="clabel" id="cd-label">距离初试</div>
+            <div class="cnum" id="cd-num">-- <small>天</small></div>
+            <div class="cmeta" id="cd-meta">—</div>
+            <div class="count-chips">
+              <span class="chip y" id="cd-target">目标待设置</span>
+              <span class="chip t" id="cd-week">本周 0 题</span>
+              <span class="chip b" id="cd-focus">今日专注 0 分钟</span>
+            </div>
+          </div>
+          <div class="quote-card">
+            <div>
+              <div class="mini" style="opacity:.75;font-weight:900">今日语录 · DAILY</div>
+              <div class="q" id="quote-text" style="margin-top:8px">—</div>
+            </div>
+            <div class="a" id="quote-author">—</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="ic" style="background:var(--red)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
+            </span>
+            今天要处理
+            <span class="right"><span class="mini muted" id="today-count">0 项</span></span>
+          </div>
+          <div class="list" id="today-list"></div>
+        </div>
+
+        <div class="grid g2">
+          <div class="card">
+            <div class="card-title">
+              <span class="ic" style="background:var(--teal)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+              </span>
+              今日作息清单
+              <span class="right"><span class="mini muted" id="routine-progress">0%</span></span>
+            </div>
+            <div id="ov-routine"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <span class="ic" style="background:var(--blue)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+              </span>
+              本周刷题统计
+            </div>
+            <div id="ov-questions"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 2 每日作息 ============ -->
+      <section class="view" id="view-routine">
+        <div class="card">
+          <div class="card-title">
+            <span class="ic" style="background:var(--yellow)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            </span>
+            <span>每日作息 · <span id="routine-date-label">今天</span></span>
+            <span class="right">
+              <input type="date" id="routine-date" style="width:auto;min-height:36px;padding:5px 9px;font-size:14px">
+              <button class="btn sm" id="btnRoutineAdd">+ 时段</button>
+              <button class="btn sm ghost" id="btnRoutineReset">恢复默认</button>
+            </span>
+          </div>
+          <div class="mini muted" style="margin-bottom:12px">按时段打卡，点右侧方框即可完成当天该时段 <span id="routine-progress2"></span></div>
+          <div id="routine-list"></div>
+        </div>
+      </section>
+
+      <!-- ============ 3 阶段时间轴 ============ -->
+      <section class="view" id="view-timeline">
+        <div class="card">
+          <div class="card-title">
+            <span class="ic" style="background:var(--purple)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h6M14 6h6M4 12h10M4 18h5M18 18h2"/><circle cx="12" cy="6" r="1.6"/><circle cx="17" cy="12" r="1.6"/><circle cx="11" cy="18" r="1.6"/></svg>
+            </span>
+            阶段时间轴（12 个里程碑）
+            <span class="right"><span class="mini muted" id="tl-progress">0 / 12</span></span>
+          </div>
+          <div class="mini muted" style="margin-bottom:12px">基于设置中的考试日期自动推算节点。点节点卡片可标记「已完成」。</div>
+          <div class="tl" id="timeline-list"></div>
+        </div>
+      </section>
+
+      <!-- ============ 4 备考看板 ============ -->
+      <section class="view" id="view-board">
+        <div class="grid g2">
+          <div class="card">
+            <div class="card-title">
+              <span class="ic" style="background:var(--green)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><path d="M3 9h18M9 9v12M15 13h3M15 17h3"/></svg>
+              </span>
+              月历打卡热力图
+              <span class="right"><button class="btn sm ghost" id="cal-prev">‹</button><button class="btn sm ghost" id="cal-next">›</button></span>
+            </div>
+            <div class="mini muted" style="margin-bottom:10px">颜色越深 = 当天作息完成度越高 · <span id="cal-month"></span></div>
+            <div class="cal" id="cal-grid"></div>
+            <div class="legend" style="margin-top:12px">
+              <span><i style="background:#F3EFE2"></i>0%</span>
+              <span><i style="background:#C8E9DF"></i>≤40%</span>
+              <span><i style="background:#6FD3BE"></i>≤70%</span>
+              <span><i style="background:#26C6A8"></i>≤99%</span>
+              <span><i style="background:#16110B"></i>100%</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <span class="ic" style="background:var(--red)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg>
+              </span>
+              时政热点速览
+              <span class="right"><button class="btn sm primary" id="btnAffairAdd">+ 新增</button></span>
+            </div>
+            <div id="affair-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 5 任务管理 ============ -->
+      <section class="view" id="view-tasks">
+        <div class="card">
+          <div class="card-title">
+            <span class="ic" style="background:var(--blue)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </span>
+            任务管理
+            <span class="right">
+              <button class="btn sm primary" id="btnTaskAdd">+ 添加任务</button>
+              <button class="btn sm ghost" id="btnTaskArchive">看归档</button>
+            </span>
+          </div>
+          <div class="filters" id="task-filters">
+            <button class="fbtn active" data-filter="all">全部</button>
+            <button class="fbtn" data-filter="today">今天</button>
+            <button class="fbtn" data-filter="overdue">逾期</button>
+            <button class="fbtn" data-filter="done">已完成</button>
+          </div>
+          <div class="searchbox">
+            <input type="text" id="task-search" placeholder="搜索任务关键词…" style="flex:1;min-width:180px">
+            <select id="task-subject" style="width:auto;min-width:120px"><option value="">全部科目</option></select>
+          </div>
+          <div class="list" id="task-list"></div>
+        </div>
+      </section>
+
+      <!-- ============ 6 专注模式 ============ -->
+      <section class="view" id="view-focus">
+        <div class="break-banner" id="breakBanner">已连续专注较久，起来活动 5 分钟吧！</div>
+        <div class="focus-hero" style="margin-bottom:16px">
+          <div class="timer-card">
+            <div class="tt">专注计时 · COUNT UP</div>
+            <div class="clock" id="focus-clock">00:00:00</div>
+            <div class="tsk" id="focus-task-label">未绑定任务</div>
+            <div class="timer-btns">
+              <button class="btn green" id="btnFocusStart">开始</button>
+              <button class="btn red" id="btnFocusPause">暂停</button>
+              <button class="btn" id="btnFocusStop">结束并保存</button>
+            </div>
+          </div>
+          <div class="card" style="margin:0">
+            <div class="card-title">
+              <span class="ic" style="background:var(--teal)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>
+              </span>
+              今日目标
+            </div>
+            <div class="ring-wrap">
+              <div id="goal-ring"></div>
+              <div>
+                <div class="big" id="goal-text">0 / 0 分钟</div>
+                <div class="mini muted" id="goal-sub">目标可在设置中调整</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="ic" style="background:var(--yellow)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+            </span>
+            近 7 天学习节奏
+            <span class="right"><span class="mini muted" id="focus-weektotal">本周合计 0 分钟</span></span>
+          </div>
+          <div class="field" style="margin-bottom:12px">
+            <label>绑定任务（可选）</label>
+            <select id="focus-task-select"></select>
+          </div>
+          <div id="focus-chart"></div>
+          <div class="card tight" style="margin:12px 0 0;background:#FFF7DC">
+            <div class="mini"><b>休息提醒：</b>每连续专注满 <span id="brk-len">50</span> 分钟提醒休息一次（可在设置调整间隔）。</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 7 刷题统计 ============ -->
+      <section class="view" id="view-questions">
+        <div class="grid g4" style="margin-bottom:16px">
+          <div class="stat"><div class="v" id="qs-total">0</div><div class="k">累计做题</div></div>
+          <div class="stat"><div class="v" id="qs-today">0</div><div class="k">今日做题</div></div>
+          <div class="stat"><div class="v" id="qs-acc">0%</div><div class="k">总正确率</div></div>
+          <div class="stat"><div class="v" id="qs-days">0</div><div class="k">刷题天数</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="ic" style="background:var(--green)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+            </span>
+            近 7 天刷题趋势（按科目堆叠）
+          </div>
+          <div class="chart-box" id="qs-chart"></div>
+          <div class="legend" id="qs-legend"></div>
+        </div>
+
+        <div class="grid g2">
+          <div class="card">
+            <div class="card-title">
+              <span class="ic" style="background:var(--blue)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+              </span>
+              录入刷题记录
+            </div>
+            <div class="frow c2">
+              <div class="field"><label>日期</label><input type="date" id="q-date"></div>
+              <div class="field"><label>科目</label><select id="q-subject"></select></div>
+            </div>
+            <div class="frow c2">
+              <div class="field"><label>做题数</label><input type="number" id="q-count" min="0" placeholder="0"></div>
+              <div class="field"><label>正确数</label><input type="number" id="q-correct" min="0" placeholder="0"></div>
+            </div>
+            <button class="btn primary" id="btnQAdd" style="width:100%">+ 添加记录</button>
+          </div>
+          <div class="card">
+            <div class="card-title">
+              <span class="ic" style="background:var(--purple)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 9l-5 5-3-3-4 4"/></svg>
+              </span>
+              各科目累计
+            </div>
+            <div class="chart-box">
+              <table class="qt" id="qs-table">
+                <thead><tr><th>科目</th><th>做题</th><th>正确</th><th>正确率</th><th></th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 8 OCR 识别 ============ -->
+      <section class="view" id="view-ocr">
+        <div class="card">
+          <div class="card-title">
+            <span class="ic" style="background:var(--orange)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>
+            </span>
+            图片文字识别
+          </div>
+          <div class="mini muted" style="margin-bottom:12px" id="ocr-engine-note">上传或拍摄题目图片，尝试自动提取文字；不支持时可手动粘贴文字后保存。</div>
+          <div class="drop" id="ocrDrop">
+            <div>点击选择 / 拍摄图片</div>
+            <div class="mini" style="margin-top:6px">支持 JPG · PNG，图片不会上传，仅在本机处理</div>
+          </div>
+          <input type="file" id="ocrFile" accept="image/*" style="display:none">
+          <div id="ocrPreviewWrap" style="margin-top:12px"></div>
+          <div class="field" style="margin-top:12px">
+            <label>识别 / 粘贴的文字</label>
+            <textarea id="ocrText" placeholder="识别结果会出现在这里，也可以直接粘贴题目文字…"></textarea>
+          </div>
+          <div class="modal-foot" style="margin-top:4px">
+            <button class="btn primary" id="btnOcrSave">保存到摘录库</button>
+            <button class="btn ghost" id="btnOcrClear">清空</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <span class="ic" style="background:var(--blue)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+            </span>
+            摘录库
+            <span class="right"><span class="mini muted" id="ocr-count">0 条</span></span>
+          </div>
+          <div id="ocr-list"></div>
+        </div>
+      </section>
+
+      <!-- ============ 9 进阶工具 ============ -->
+      <section class="view" id="view-tools">
+        <div class="grid g2">
+          <div class="card">
+            <div class="card-title">
+              <span class="ic" style="background:var(--yellow)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 12l5-3M12 3v2M21 12h-2M12 19v2M3 12h2"/></svg>
+              </span>
+              随机抽签复习
+            </div>
+            <div class="mini muted" style="margin-bottom:10px">从「未完成任务」里随机抽一条，抽到就去干。</div>
+            <div class="pick-result" id="pickResult">点下面按钮开始抽签 →</div>
+            <button class="btn primary" id="btnPick" style="width:100%;margin-top:12px">随机抽一个任务</button>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <span class="ic" style="background:var(--teal)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 0 0-3 19.5V22h6v-.5A10 10 0 0 0 12 2z"/><circle cx="12" cy="11" r="3"/></svg>
+              </span>
+              自定义倒计时
+            </div>
+            <div class="frow c2">
+              <div class="field"><label>分钟</label><input type="number" id="cdMin" min="1" value="10"></div>
+              <div class="field"><label>标签</label><input type="text" id="cdLabel" placeholder="如：背单词"></div>
+            </div>
+            <div class="cdown" id="cdownDisplay">--:--</div>
+            <div class="modal-foot" style="margin-top:10px">
+              <button class="btn green" id="btnCdownStart">开始</button>
+              <button class="btn red" id="btnCdownStop">停止</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <span class="ic" style="background:var(--purple)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.6-9.3-9A5.2 5.2 0 0 1 12 6a5.2 5.2 0 0 1 9.3 6c-2.3 4.4-9.3 9-9.3 9z"/></svg>
+              </span>
+              4-7-8 呼吸放松
+            </div>
+            <div class="mini muted">吸气 4 秒 · 屏息 7 秒 · 呼气 8 秒，缓解焦虑，快速回血。</div>
+            <div class="breathe" id="breatheBall">准备</div>
+            <button class="btn primary" id="btnBreathe" style="width:100%">开始呼吸引导</button>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <span class="ic" style="background:var(--red)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 9h8M8 13h4"/></svg>
+              </span>
+              记忆闪卡
+              <span class="right"><button class="btn sm" id="btnCardAdd">+ 卡片</button></span>
+            </div>
+            <div class="cardflip" id="flashcard">
+              <div class="inner">
+                <div class="face front" id="fc-front">点击查看答案</div>
+                <div class="face back" id="fc-back">—</div>
+              </div>
+            </div>
+            <div class="modal-foot" style="margin-top:12px">
+              <button class="btn sm" id="btnCardPrev">上一张</button>
+              <span class="mini muted" id="fc-count" style="align-self:center">0 / 0</span>
+              <button class="btn sm" id="btnCardNext">下一张</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 10 设置 ============ -->
+      <section class="view" id="view-settings">
+        <div class="card">
+          <div class="card-title">
+            <span class="ic" style="background:var(--yellow)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>
+            </span>
+            基本信息
+          </div>
+          <div class="field"><label>考试名称</label><input type="text" id="s-examName" placeholder="如：2027 全国硕士研究生招生考试"></div>
+          <div class="frow c2">
+            <div class="field"><label>初试日期</label><input type="date" id="s-examDate"></div>
+            <div class="field"><label>目标院校</label><input type="text" id="s-school" placeholder="如：XX大学"></div>
+          </div>
+          <div class="field"><label>报考专业</label><input type="text" id="s-major" placeholder="如：计算机科学与技术"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="ic" style="background:var(--teal)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>
+            </span>
+            专注与提醒
+          </div>
+          <div class="frow c3">
+            <div class="field"><label>每日目标（分钟）</label><input type="number" id="s-dailyGoal" min="0"></div>
+            <div class="field"><label>休息提醒间隔（分钟）</label><input type="number" id="s-breakLen" min="5"></div>
+            <div class="field"><label>科目数（固定 4 科）</label><input type="text" id="s-subjects" disabled value="政治 / 英语 / 数学 / 专业课"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="ic" style="background:var(--purple)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18z"/><path d="M12 3a9 9 0 0 1 0 18"/></svg>
+            </span>
+            主题配色
+          </div>
+          <div class="swatches" id="theme-swatches"></div>
+          <div class="mini muted" style="margin-top:8px">切换底色，点击立即生效。</div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="ic" style="background:var(--red)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+            </span>
+            数据与备份
+          </div>
+          <div class="set-row">
+            <div><div class="lbl">导出 JSON 备份</div><div class="desc">把全部数据导出为文件，妥善保存</div></div>
+            <div class="right"><button class="btn sm primary" id="btnExport2">导出备份</button></div>
+          </div>
+          <div class="set-row">
+            <div><div class="lbl">导入恢复</div><div class="desc">从备份文件恢复（覆盖当前数据，支持上千条）</div></div>
+            <div class="right"><button class="btn sm" id="btnImport2">选择文件</button></div>
+          </div>
+          <div class="set-row">
+            <div><div class="lbl">清空示例数据</div><div class="desc">仅移除预置的演示内容</div></div>
+            <div class="right"><button class="btn sm" id="btnClearDemo">清空示例</button></div>
+          </div>
+          <div class="set-row">
+            <div><div class="lbl" style="color:#B3261E">清空全部数据</div><div class="desc">删除所有任务 / 作息 / 专注 / 刷题记录，不可恢复</div></div>
+            <div class="right"><button class="btn sm red" id="btnClearAll">清空全部</button></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span class="ic" style="background:var(--blue)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#16110B" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
+            </span>
+            关于存储
+          </div>
+          <div class="mini muted" style="line-height:1.7">
+            本工作台数据模型按 6 张数据表设计（任务 / 作息 / 专注记录 / 刷题记录 / 时政内容 / 设置）。<br>
+            当前为<b>浏览器本地存储（localStorage）</b>方案：数据保存在你自己的浏览器里，不上传服务器，
+            多设备间<b>不自动同步</b>，请定期使用「导出备份 / 导入恢复」迁移数据。<br>
+            若后续接入云端数据表，可将存储层替换为数据表读写，即可实现<b>在线存储与双向同步</b>。
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 任务弹窗 ================= -->
+<div class="modal-wrap" id="taskModal">
+  <div class="modal">
+    <h3>添加任务<span class="x" id="taskModalX">×</span></h3>
+    <div class="field"><label>任务内容</label><input type="text" id="m-task-title" placeholder="如：数学 高数强化 第 5 章"></div>
+    <div class="frow c2">
+      <div class="field"><label>科目</label><select id="m-task-subject"></select></div>
+      <div class="field"><label>优先级</label>
+        <select id="m-task-priority"><option value="P0">P0 · 最紧急</option><option value="P1" selected>P1 · 重要</option><option value="P2">P2 · 常规</option></select>
+      </div>
+    </div>
+    <div class="field"><label>截止日期</label><input type="date" id="m-task-due"></div>
+    <div class="modal-foot">
+      <button class="btn primary" id="m-task-save">保存</button>
+      <button class="btn ghost" id="m-task-cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 作息弹窗 ================= -->
+<div class="modal-wrap" id="routineModal">
+  <div class="modal">
+    <h3>新增作息时段<span class="x" id="routineModalX">×</span></h3>
+    <div class="field"><label>名称</label><input type="text" id="m-routine-label" placeholder="如：英语单词"></div>
+    <div class="frow c2">
+      <div class="field"><label>开始时间</label><input type="time" id="m-routine-start" value="07:00"></div>
+      <div class="field"><label>结束时间</label><input type="time" id="m-routine-end" value="08:00"></div>
+    </div>
+    <div class="field"><label>分类标签</label><input type="text" id="m-routine-cat" placeholder="如：英语 / 数学 / 休息"></div>
+    <div class="modal-foot">
+      <button class="btn primary" id="m-routine-save">保存</button>
+      <button class="btn ghost" id="m-routine-cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 时政弹窗 ================= -->
+<div class="modal-wrap" id="affairModal">
+  <div class="modal">
+    <h3>新增时政热点<span class="x" id="affairModalX">×</span></h3>
+    <div class="field"><label>标题</label><input type="text" id="m-affair-title" placeholder="如：中央经济工作会议要点"></div>
+    <div class="field"><label>摘要</label><textarea id="m-affair-summary" placeholder="一句话速览该热点的核心内容…" style="min-height:80px"></textarea></div>
+    <div class="frow c2">
+      <div class="field"><label>分类</label>
+        <select id="m-affair-tag"><option>时政</option><option>经济</option><option>民生</option><option>科技</option><option>国际</option><option>文化</option></select>
+      </div>
+      <div class="field"><label>日期</label><input type="date" id="m-affair-date"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn primary" id="m-affair-save">保存</button>
+      <button class="btn ghost" id="m-affair-cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 闪卡弹窗 ================= -->
+<div class="modal-wrap" id="cardModal">
+  <div class="modal">
+    <h3>新增记忆闪卡<span class="x" id="cardModalX">×</span></h3>
+    <div class="field"><label>正面（问题 / 词条）</label><input type="text" id="m-card-front" placeholder="如：鸦片战争爆发年份"></div>
+    <div class="field"><label>背面（答案 / 解释）</label><textarea id="m-card-back" placeholder="1840 年" style="min-height:70px"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn primary" id="m-card-save">保存</button>
+      <button class="btn ghost" id="m-card-cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 通用确认弹窗 ================= -->
+<div class="modal-wrap" id="confirmModal">
+  <div class="modal" style="max-width:400px">
+    <h3 id="confirm-title">确认操作</h3>
+    <div class="mini" id="confirm-msg" style="font-weight:800;line-height:1.6">确定要执行该操作吗？</div>
+    <div class="modal-foot">
+      <button class="btn red" id="confirm-ok">确定</button>
+      <button class="btn ghost" id="confirm-cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   考研备考工作台 —— 逻辑层
+   架构分层（严格单向，杜绝渲染函数互调导致的递归环）：
+     ① 存储层 Store  ：读写 localStorage（可替换为云端数据表 API）
+     ② 数据层 Data   ：loadAll / saveXxx / 增删改
+     ③ 工具层 Utils  ：日期、格式化、SVG 图表生成
+     ④ 渲染层 Render ：每个 renderXxx 只读 state + 更新自己的 DOM，互不调用
+     ⑤ 调度层 refreshAll()：唯一统一刷新入口，按固定顺序调用各渲染函数
+     ⑥ 事件层：交互 → 改数据 → refreshAll()
+   ===================================================================== */
+
+/* ---------------- 常量 ---------------- */
+var KEY = 'wb_kaoyan_';
+var KEYS = {
+  tasks: KEY + 'tasks',
+  routines: KEY + 'routines',
+  focus: KEY + 'focus',
+  questions: KEY + 'questions',
+  affairs: KEY + 'affairs',
+  settings: KEY + 'settings',
+  ocr: KEY + 'ocr',
+  cards: KEY + 'cards',
+  inited: KEY + 'inited'
+};
+var SUBJECTS = [
+  { name: '政治', color: '#FF5A5F' },
+  { name: '英语', color: '#4D8BFF' },
+  { name: '数学', color: '#26C6A8' },
+  { name: '专业课', color: '#FFC93C' }
+];
+var SUBJECT_COLOR = {};
+SUBJECTS.forEach(function (s) { SUBJECT_COLOR[s.name] = s.color; });
+var THEMES = ['#FFF6D6', '#FFF1E3', '#EAF6FF', '#F3F0FF', '#EAFBF3', '#FFF0F6'];
+var QUOTES = [
+  { t: '种一棵树最好的时间是十年前，其次是现在。', a: '—— 谚语' },
+  { t: '你现在的努力，是为了以后有更多选择的权利。', a: '—— 考研人' },
+  { t: '所谓努力，就是主动而有目的的活动。', a: '—— 尼采' },
+  { t: '慢慢来，比较快。', a: '—— 备考心法' },
+  { t: '星光不问赶路人，时光不负有心人。', a: '—— 励志' },
+  { t: '把每一天当成倒数第二天来拼。', a: '—— 冲刺期' },
+  { t: '所有的失败，都是因为坚持得不够久。', a: '—— 共勉' }
+];
+var WD = ['日', '一', '二', '三', '四', '五', '六'];
+
+/* ---------------- ① 存储层 ---------------- */
+var Store = {
+  get: function (k, def) {
+    try {
+      var raw = localStorage.getItem(k);
+      if (raw === null || raw === undefined) return def;
+      var v = JSON.parse(raw);
+      return (v === null || v === undefined) ? def : v;
+    } catch (e) { return def; }
+  },
+  set: function (k, v) {
+    try { localStorage.setItem(k, JSON.stringify(v)); return true; }
+    catch (e) { toast('存储空间不足，请导出备份后清理'); return false; }
+  },
+  del: function (k) { try { localStorage.removeItem(k); } catch (e) {} }
+};
+
+/* ---------------- ② 数据层 ---------------- */
+var state = {
+  tasks: [], routines: [], focus: [], questions: [], affairs: [], settings: {}, ocr: [], cards: [],
+  taskFilter: 'all', taskSearch: '', taskSubject: '', calMonth: null, showArchive: false,
+  fcIndex: 0
+};
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+function defaultSettings() {
+  return {
+    examName: '2027 全国硕士研究生招生考试',
+    examDate: '2026-12-26',
+    school: '目标院校',
+    major: '计算机科学与技术',
+    dailyGoal: 240,
+    breakLen: 50,
+    theme: '#FFF6D6'
+  };
+}
+
+function defaultRoutines() {
+  var data = [
+    ['06:30', '07:00', '起床洗漱', '生活'],
+    ['07:00', '08:00', '英语单词', '英语'],
+    ['08:00', '12:00', '数学强化', '数学'],
+    ['12:00', '13:30', '午餐午休', '休息'],
+    ['13:30', '17:30', '专业课学习', '专业课'],
+    ['17:30', '18:30', '晚餐散步', '休息'],
+    ['18:30', '21:30', '政治 + 英语真题', '政治'],
+    ['21:30', '22:30', '复盘错题', '复盘'],
+    ['22:30', '23:00', '洗漱睡觉', '生活']
+  ];
+  return data.map(function (d) {
+    return { id: uid(), start: d[0], end: d[1], label: d[2], cat: d[3], checks: {} };
+  });
+}
+
+function seedExampleData() {
+  var t = todayStr();
+  var tasks = [
+    { id: uid(), title: '背考研核心词汇 Unit 12（含复盘）', subject: '英语', priority: 'P1', due: shiftDate(t, -1), done: false, archived: false, createdAt: Date.now() - 90000000, demo: true },
+    { id: uid(), title: '数学 高数强化 第 5 章 课后习题', subject: '数学', priority: 'P0', due: t, done: false, archived: false, createdAt: Date.now() - 80000000, demo: true },
+    { id: uid(), title: '政治 马原 核心考点 精讲精练 P30-45', subject: '政治', priority: 'P1', due: t, done: false, archived: false, createdAt: Date.now() - 70000000, demo: true },
+    { id: uid(), title: '专业课 数据结构 · 树与二叉树专项', subject: '专业课', priority: 'P1', due: shiftDate(t, 1), done: false, archived: false, createdAt: Date.now() - 60000000, demo: true },
+    { id: uid(), title: '英语真题 2019 阅读 Text1-2 精读', subject: '英语', priority: 'P2', due: shiftDate(t, -2), done: true, archived: false, createdAt: Date.now() - 50000000, doneAt: Date.now() - 4000000, demo: true }
+  ];
+  Store.set(KEYS.tasks, tasks);
+
+  var routines = defaultRoutines();
+  // 给今天和昨天预置部分打卡
+  var todayIds = routines.slice(0, 3).map(function (r) { return r.id; });
+  routines.forEach(function (r) {
+    r.checks = {};
+    if (todayIds.indexOf(r.id) >= 0) r.checks[t] = true;
+    if (r.id === routines[0].id) r.checks[shiftDate(t, -1)] = true;
+  });
+  Store.set(KEYS.routines, routines);
+
+  var focus = [];
+  var mins = [180, 240, 120, 300, 210, 260, 195];
+  for (var i = 6; i >= 0; i--) {
+    focus.push({ id: uid(), date: shiftDate(t, -i), seconds: mins[6 - i] * 60, taskTitle: '自主学习', demo: true });
+  }
+  Store.set(KEYS.focus, focus);
+
+  var qs = [];
+  var seedQ = [
+    [7, 56, 49], [6, 38, 30], [5, 72, 60], [4, 40, 33], [3, 65, 58], [2, 52, 44], [1, 48, 39]
+  ];
+  for (var j = 0; j < seedQ.length; j++) {
+    var d = seedQ[j];
+    qs.push({ id: uid(), date: shiftDate(t, -d[0]), subject: '数学', count: d[1], correct: d[2], demo: true });
+    qs.push({ id: uid(), date: shiftDate(t, -d[0]), subject: '英语', count: Math.round(d[1] * 0.7), correct: Math.round(d[2] * 0.72), demo: true });
+    if (j % 2 === 0) qs.push({ id: uid(), date: shiftDate(t, -d[0]), subject: '政治', count: 30, correct: 25, demo: true });
+    if (j % 3 === 0) qs.push({ id: uid(), date: shiftDate(t, -d[0]), subject: '专业课', count: 25, correct: 21, demo: true });
+  }
+  Store.set(KEYS.questions, qs);
+
+  var affairs = [
+    { id: uid(), date: shiftDate(t, -2), title: '中央经济工作会议精神要点', tag: '经济', summary: '坚持稳中求进工作总基调，着力扩大内需、提振信心，推动经济实现质的有效提升和量的合理增长。', read: false, demo: true },
+    { id: uid(), date: shiftDate(t, -4), title: '新质生产力与高质量发展', tag: '时政', summary: '以科技创新引领现代化产业体系建设，因地制宜发展新质生产力。', read: false, demo: true },
+    { id: uid(), date: shiftDate(t, -6), title: '全过程人民民主的实践内涵', tag: '民生', summary: '全过程人民民主是最广泛、最真实、最管用的社会主义民主。', read: true, demo: true }
+  ];
+  Store.set(KEYS.affairs, affairs);
+
+  Store.set(KEYS.cards, [
+    { id: uid(), front: '鸦片战争爆发年份', back: '1840 年（1842 年《南京条约》）', demo: true },
+    { id: uid(), front: '剩余价值率公式', back: 'm\' = m / v = 剩余劳动时间 / 必要劳动时间', demo: true },
+    { id: uid(), front: '二叉树遍历：中序', back: '左 → 根 → 右', demo: true }
+  ]);
+}
+
+function loadAll() {
+  state.tasks = Store.get(KEYS.tasks, []);
+  state.routines = Store.get(KEYS.routines, []);
+  state.questions = Store.get(KEYS.questions, []);
+  state.focus = Store.get(KEYS.focus, []);
+  state.affairs = Store.get(KEYS.affairs, []);
+  state.ocr = Store.get(KEYS.ocr, []);
+  state.cards = Store.get(KEYS.cards, []);
+  var st = Store.get(KEYS.settings, null);
+  state.settings = st || defaultSettings();
+}
+
+function persist(what) {
+  if (what === 'tasks' || !what) Store.set(KEYS.tasks, state.tasks);
+  if (what === 'routines' || !what) Store.set(KEYS.routines, state.routines);
+  if (what === 'focus' || !what) Store.set(KEYS.focus, state.focus);
+  if (what === 'questions' || !what) Store.set(KEYS.questions, state.questions);
+  if (what === 'affairs' || !what) Store.set(KEYS.affairs, state.affairs);
+  if (what === 'settings' || !what) Store.set(KEYS.settings, state.settings);
+  if (what === 'ocr' || !what) Store.set(KEYS.ocr, state.ocr);
+  if (what === 'cards' || !what) Store.set(KEYS.cards, state.cards);
+}
+
+/* ---------------- ③ 工具层 ---------------- */
+function pad(n) { return (n < 10 ? '0' : '') + n; }
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+}
+function shiftDate(s, delta) {
+  var p = s.split('-');
+  var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  d.setDate(d.getDate() + delta);
+  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+}
+function diffDays(a, b) { // a - b，单位天
+  var pa = a.split('-'), pb = b.split('-');
+  var da = new Date(Number(pa[0]), Number(pa[1]) - 1, Number(pa[2]));
+  var db = new Date(Number(pb[0]), Number(pb[1]) - 1, Number(pb[2]));
+  return Math.round((da - db) / 86400000);
+}
+function fmtMD(s) {
+  if (!s) return '—';
+  var p = s.split('-');
+  return Number(p[1]) + '月' + Number(p[2]) + '日';
+}
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function last7Days() {
+  var t = todayStr(), arr = [];
+  for (var i = 6; i >= 0; i--) arr.push(shiftDate(t, -i));
+  return arr;
+}
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+/* --- SVG 生成器 --- */
+function svgRing(pct, size, stroke, color, track) {
+  var r = (size - stroke) / 2;
+  var c = 2 * Math.PI * r;
+  var off = c * (1 - clamp(pct, 0, 1));
+  return '<svg viewBox="0 0 ' + size + ' ' + size + '" width="' + size + '" height="' + size + '">' +
+    '<circle cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke="' + track + '" stroke-width="' + stroke + '"/>' +
+    '<circle cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke +
+    '" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '" stroke-linecap="round" transform="rotate(-90 ' + size / 2 + ' ' + size / 2 + ')"/>' +
+    '<text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-size="' + (size * 0.26) + '" font-weight="900" fill="#16110B">' + Math.round(pct * 100) + '%</text>' +
+    '</svg>';
+}
+
+/* 简单柱状图：data=[{label,value,color}] */
+function svgBars(data, opt) {
+  opt = opt || {};
+  var W = 660, H = 220, padL = 34, padB = 30, padT = 14;
+  var max = Math.max(1, Math.max.apply(null, data.map(function (d) { return d.value; })));
+  var n = data.length;
+  var gap = 16;
+  var bw = (W - padL - 16 - gap * (n - 1)) / n;
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="' + H + '" preserveAspectRatio="xMidYMid meet">';
+  // 轴上网格
+  for (var g = 0; g <= 4; g++) {
+    var y = padT + (H - padT - padB) * g / 4;
+    s += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - 12) + '" y2="' + y + '" stroke="#16110B" stroke-width="1" opacity="0.14"/>';
+    s += '<text x="' + (padL - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="11" font-weight="800" fill="#7A6A52">' + Math.round(max * (1 - g / 4)) + '</text>';
+  }
+  s += '<line x1="' + padL + '" y1="' + (H - padB) + '" x2="' + (W - 12) + '" y2="' + (H - padB) + '" stroke="#16110B" stroke-width="2.5"/>';
+  data.forEach(function (d, i) {
+    var x = padL + i * (bw + gap);
+    var h = (H - padT - padB) * (d.value / max);
+    var y = H - padB - h;
+    s += '<rect x="' + x + '" y="' + y + '" width="' + bw + '" height="' + Math.max(0, h) + '" rx="7" fill="' + (d.color || '#FFC93C') + '" stroke="#16110B" stroke-width="2.5"/>';
+    if (d.value > 0) s += '<text x="' + (x + bw / 2) + '" y="' + (y - 6) + '" text-anchor="middle" font-size="12" font-weight="900" fill="#16110B">' + d.value + '</text>';
+    s += '<text x="' + (x + bw / 2) + '" y="' + (H - padB + 20) + '" text-anchor="middle" font-size="12" font-weight="900" fill="#16110B">' + esc(d.label) + '</text>';
+  });
+  s += '</svg>';
+  return s;
+}
+
+/* 堆叠柱状图：days=[...], series=[{name,color,values[]}] */
+function svgStacked(days, series) {
+  var W = 660, H = 240, padL = 36, padB = 30, padT = 14;
+  var totals = days.map(function (_, i) {
+    return series.reduce(function (a, s) { return a + (s.values[i] || 0); }, 0);
+  });
+  var max = Math.max(1, Math.max.apply(null, totals));
+  var n = days.length, gap = 16;
+  var bw = (W - padL - 16 - gap * (n - 1)) / n;
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" height="' + H + '" preserveAspectRatio="xMidYMid meet">';
+  for (var g = 0; g <= 4; g++) {
+    var y = padT + (H - padT - padB) * g / 4;
+    s += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - 12) + '" y2="' + y + '" stroke="#16110B" stroke-width="1" opacity="0.14"/>';
+    s += '<text x="' + (padL - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="11" font-weight="800" fill="#7A6A52">' + Math.round(max * (1 - g / 4)) + '</text>';
+  }
+  s += '<line x1="' + padL + '" y1="' + (H - padB) + '" x2="' + (W - 12) + '" y2="' + (H - padB) + '" stroke="#16110B" stroke-width="2.5"/>';
+  days.forEach(function (day, i) {
+    var x = padL + i * (bw + gap);
+    var acc = 0;
+    series.forEach(function (se) {
+      var v = se.values[i] || 0;
+      if (v <= 0) return;
+      var h = (H - padT - padB) * (v / max);
+      var y = H - padB - acc - h;
+      s += '<rect x="' + x + '" y="' + y + '" width="' + bw + '" height="' + h + '" fill="' + se.color + '" stroke="#16110B" stroke-width="2"/>';
+      acc += h;
+    });
+    var topY = H - padB - acc;
+    s += '<text x="' + (x + bw / 2) + '" y="' + (topY - 6) + '" text-anchor="middle" font-size="11.5" font-weight="900" fill="#16110B">' + totalOf(series, i) + '</text>';
+    s += '<text x="' + (x + bw / 2) + '" y="' + (H - padB + 20) + '" text-anchor="middle" font-size="11.5" font-weight="900" fill="#16110B">' + esc(fmtShort(day)) + '</text>';
+  });
+  s += '</svg>';
+  return s;
+  function totalOf(se, i) { return se.reduce(function (a, x) { return a + (x.values[i] || 0); }, 0); }
+  function fmtShort(d) { var p = d.split('-'); return Number(p[1]) + '/' + Number(p[2]); }
+}
+
+/* ---------------- ④ 渲染层（各 renderXxx 独立，互不调用） ---------------- */
+function setPageTitle(view) {
+  var map = {
+    overview: ['总览', '#FFC93C'], routine: ['每日作息', '#26C6A8'], timeline: ['阶段时间轴', '#B15CFF'],
+    board: ['备考看板', '#2ED573'], tasks: ['任务管理', '#4D8BFF'], focus: ['专注模式', '#26C6A8'],
+    questions: ['刷题统计', '#2ED573'], ocr: ['OCR 识别', '#FF8A3D'], tools: ['进阶工具', '#B15CFF'], settings: ['设置', '#FFC93C']
+  };
+  var m = map[view] || map.overview;
+  var pt = document.getElementById('pt-text');
+  var pd = document.getElementById('pt-dot');
+  if (pt) pt.textContent = m[0];
+  if (pd) pd.style.background = m[1];
+}
+
+function renderCountdown() {
+  var s = state.settings;
+  var el = document.getElementById('cd-num');
+  var label = document.getElementById('cd-label');
+  var meta = document.getElementById('cd-meta');
+  var target = document.getElementById('cd-target');
+  if (!el) return;
+  var remain = diffDays(s.examDate, todayStr());
+  if (remain > 0) {
+    el.innerHTML = remain + ' <small>天</small>';
+    label.textContent = '距离初试';
+  } else if (remain === 0) {
+    el.innerHTML = '今天 <small>开考</small>';
+    label.textContent = '初试日';
+  } else {
+    el.innerHTML = Math.abs(remain) + ' <small>天前</small>';
+    label.textContent = '初试已过';
+  }
+  meta.textContent = (s.examName || '考研') + ' · ' + (s.examDate || '—');
+  target.textContent = (s.school && s.school !== '目标院校' ? s.school : '目标院校') + ' / ' + (s.major || '专业');
+
+  var week = last7Days();
+  var weekQ = state.questions.filter(function (r) { return week.indexOf(r.date) >= 0; })
+    .reduce(function (a, r) { return a + (Number(r.count) || 0); }, 0);
+  var wc = document.getElementById('cd-week');
+  if (wc) wc.textContent = '本周 ' + weekQ + ' 题';
+
+  var t = todayStr();
+  var todayMin = Math.round(state.focus.filter(function (r) { return r.date === t; })
+    .reduce(function (a, r) { return a + (Number(r.seconds) || 0); }, 0) / 60);
+  var fc = document.getElementById('cd-focus');
+  if (fc) fc.textContent = '今日专注 ' + todayMin + ' 分钟';
+}
+
+function renderQuote() {
+  var days = diffDays(todayStr(), '2026-01-01');
+  var q = QUOTES[Math.abs(days) % QUOTES.length];
+  var t = document.getElementById('quote-text');
+  var a = document.getElementById('quote-author');
+  if (t) t.textContent = q.t;
+  if (a) a.textContent = q.a;
+}
+
+function taskIsOverdue(tk) {
+  return !tk.done && !tk.archived && tk.due && diffDays(tk.due, todayStr()) < 0;
+}
+function activeTasks() {
+  return state.tasks.filter(function (t) { return !t.archived; });
+}
+
+function renderTodayList() {
+  var box = document.getElementById('today-list');
+  var cnt = document.getElementById('today-count');
+  if (!box) return;
+  var t = todayStr();
+  var list = activeTasks().filter(function (tk) {
+    if (tk.done) return false;
+    return taskIsOverdue(tk) || tk.due === t || !tk.due;
+  }).sort(function (a, b) {
+    var ao = taskIsOverdue(a) ? 0 : 1, bo = taskIsOverdue(b) ? 0 : 1;
+    if (ao !== bo) return ao - bo;
+    var pr = { P0: 0, P1: 1, P2: 2 };
+    return (pr[a.priority] || 9) - (pr[b.priority] || 9);
+  });
+  if (cnt) cnt.textContent = list.length + ' 项';
+  if (!list.length) { box.innerHTML = '<div class="empty">今天没有待处理任务，太棒了！</div>'; return; }
+  box.innerHTML = list.map(function (tk) {
+    var od = taskIsOverdue(tk);
+    return '<div class="row' + (od ? ' overdue' : '') + '">' +
+      '<button class="checkbox" data-act="done-task" data-id="' + tk.id + '" aria-label="完成"><svg viewBox="0 0 24 24" fill="none" stroke="#08310F" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></button>' +
+      '<div class="grow"><div class="t">' + esc(tk.title) + '</div><div class="meta">' +
+      '<span class="tag p' + (tk.priority || 'P1').slice(1).toLowerCase() + '">' + esc(tk.priority || 'P1') + '</span>' +
+      '<span class="tag date">' + esc(tk.subject || '未分类') + '</span>' +
+      (od ? '<span class="tag od">逾期 ' + Math.abs(diffDays(tk.due, todayStr())) + ' 天</span>' : '<span class="tag date">今天</span>') +
+      '</div></div>' +
+      '<button class="btn sm green" data-act="done-task" data-id="' + tk.id + '">完成</button>' +
+      '</div>';
+  }).join('');
+}
+
+function renderOverviewRoutine() {
+  var box = document.getElementById('ov-routine');
+  if (!box) return;
+  var t = todayStr();
+  if (!state.routines.length) { box.innerHTML = '<div class="empty">还没有作息时段，去「每日作息」添加吧</div>'; updateRoutineProgress(); return; }
+  box.innerHTML = state.routines.map(function (r) {
+    var on = !!(r.checks && r.checks[t]);
+    return '<div class="slot' + (on ? ' done' : '') + '" style="padding:8px 10px;margin-bottom:8px">' +
+      '<span class="time" style="min-width:76px;font-size:.74rem">' + esc(r.start) + '–' + esc(r.end) + '</span>' +
+      '<div class="grow"><div class="lbl" style="font-size:.84rem">' + esc(r.label) + '</div></div>' +
+      '<button class="checkbox' + (on ? ' on' : '') + '" data-act="toggle-routine" data-id="' + r.id + '" data-date="' + t + '" aria-label="打卡"><svg viewBox="0 0 24 24" fill="none" stroke="#08310F" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></button>' +
+      '</div>';
+  }).join('');
+  updateRoutineProgress();
+}
+
+function updateRoutineProgress() {
+  var t = todayStr();
+  var total = state.routines.length;
+  var done = state.routines.filter(function (r) { return r.checks && r.checks[t]; }).length;
+  var pct = total ? Math.round(done / total * 100) : 0;
+  var a = document.getElementById('routine-progress');
+  var b = document.getElementById('routine-progress2');
+  if (a) a.textContent = done + '/' + total + ' · ' + pct + '%';
+  if (b) b.textContent = '（今日 ' + done + '/' + total + '）';
+  return pct;
+}
+
+function renderOverviewQuestions() {
+  var box = document.getElementById('ov-questions');
+  if (!box) return;
+  var days = last7Days();
+  var data = days.map(function (d) {
+    var q = state.questions.filter(function (r) { return r.date === d; });
+    return { label: '周' + WD[new Date(d.split('-')[0], d.split('-')[1] - 1, d.split('-')[2]).getDay()], value: q.reduce(function (a, r) { return a + (Number(r.count) || 0); }, 0), color: '#4D8BFF' };
+  });
+  var total = data.reduce(function (a, d) { return a + d.value; }, 0);
+  var allq = state.questions.filter(function (r) { return days.indexOf(r.date) >= 0; });
+  var c = allq.reduce(function (a, r) { return a + (Number(r.correct) || 0); }, 0);
+  var q = allq.reduce(function (a, r) { return a + (Number(r.count) || 0); }, 0);
+  var acc = q ? Math.round(c / q * 100) : 0;
+  box.innerHTML = svgBars(data, {}) +
+    '<div class="legend"><span>本周共 <b>' + total + '</b> 题</span><span>正确率 <b>' + acc + '%</b></span></div>';
+}
+
+function renderRoutineView() {
+  var box = document.getElementById('routine-list');
+  if (!box) return;
+  var dateEl = document.getElementById('routine-date');
+  var d = (dateEl && dateEl.value) || todayStr();
+  var lbl = document.getElementById('routine-date-label');
+  if (lbl) lbl.textContent = (d === todayStr() ? '今天 · ' : '') + fmtMD(d);
+  if (!state.routines.length) { box.innerHTML = '<div class="empty">还没有作息时段，点右上角「+ 时段」添加</div>'; return; }
+  var nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+  var isToday = d === todayStr();
+  box.innerHTML = state.routines.map(function (r) {
+    var on = !!(r.checks && r.checks[d]);
+    var isNow = false;
+    if (isToday) {
+      var sp = r.start.split(':'), ep = r.end.split(':');
+      var sm = Number(sp[0]) * 60 + Number(sp[1]), em = Number(ep[0]) * 60 + Number(ep[1]);
+      isNow = nowMin >= sm && nowMin < em;
+    }
+    return '<div class="slot' + (on ? ' done' : '') + '">' +
+      '<span class="time">' + esc(r.start) + '–' + esc(r.end) + '</span>' +
+      '<div class="grow"><div class="lbl">' + esc(r.label) + (isNow ? '<span class="now">进行中</span>' : '') + '</div>' +
+      '<div class="cat">' + esc(r.cat || '未分类') + '</div></div>' +
+      '<button class="checkbox' + (on ? ' on' : '') + '" data-act="toggle-routine" data-id="' + r.id + '" data-date="' + d + '" aria-label="打卡"><svg viewBox="0 0 24 24" fill="none" stroke="#08310F" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></button>' +
+      '<button class="btn sm ghost" data-act="del-routine" data-id="' + r.id + '" title="删除">删</button>' +
+      '</div>';
+  }).join('');
+}
+
+/* 12 个里程碑：daysBeforeExam 距初试天数 */
+var MILESTONES = [
+  { n: '基础启动期', d: 260, desc: '确定目标院校专业，收集真题与参考书，制定全年复习总规划。' },
+  { n: '单词 · 长难句打底', d: 220, desc: '英语核心词汇滚动记忆，长难句每日精析，打牢阅读地基。' },
+  { n: '数学基础一轮', d: 200, desc: '过完数学教材 + 基础网课，完成第一轮课后习题。' },
+  { n: '专业课一轮', d: 170, desc: '专业课教材通读一遍，整理章节框架笔记。' },
+  { n: '强化提升期', d: 150, desc: '数学强化课 + 英语真题精读启动，建立错题本。' },
+  { n: '暑期强化冲刺', d: 120, desc: '黄金强化期，全天候高效学习，专业课二轮推进。' },
+  { n: '政治系统启动', d: 100, desc: '政治精讲精练开始，配套 1000 题刷题。' },
+  { n: '真题强化训练', d: 75, desc: '数学、英语、专业课真题成套训练，计时完成。' },
+  { n: '秋季提高模考', d: 50, desc: '进入模考节奏，查漏补缺，政治背书启动。' },
+  { n: '冲刺背诵期', d: 30, desc: '政治大题、专业课重点集中背诵，真题二刷。' },
+  { n: '考前一周调整', d: 7, desc: '调整作息与心态，回顾错题与核心笔记，不碰新题。' },
+  { n: '初试开考', d: 0, desc: '沉着应考，正常发挥。你已准备很久，加油！' }
+];
+function milestoneDates() {
+  var exam = state.settings.examDate || '2026-12-26';
+  return MILESTONES.map(function (m) {
+    return { name: m.n, desc: m.desc, date: shiftDate(exam, -m.d), before: m.d };
+  });
+}
+
+function renderTimeline() {
+  var box = document.getElementById('timeline-list');
+  if (!box) return;
+  var nodes = milestoneDates();
+  var t = todayStr();
+  var curIdx = -1;
+  for (var i = 0; i < nodes.length; i++) { if (diffDays(nodes[i].date, t) >= 0) { curIdx = i; } }
+  var doneCount = 0;
+  box.innerHTML = nodes.map(function (nd, i) {
+    var passed = diffDays(nd.date, t) < 0;
+    var isCur = (i === curIdx);
+    if (passed) doneCount++;
+    var mark = passed ? '已完成' : (isCur ? '进行中' : '未开始');
+    return '<div class="tl-item' + (passed ? ' done' : '') + (isCur ? ' current' : '') + '">' +
+      '<div class="tl-card"><div class="h"><span class="nm">' + (i + 1) + '. ' + esc(nd.name) + '</span>' +
+      '<span class="chip ' + (passed ? 'g' : (isCur ? 'y' : '')) + '">' + mark + '</span>' +
+      '<span class="dt">' + (nd.before === 0 ? '初试日 ' : '距初试 ' + nd.before + ' 天 · ') + esc(nd.date) + '</span></div>' +
+      '<div class="desc">' + esc(nd.desc) + '</div></div></div>';
+  }).join('');
+  var p = document.getElementById('tl-progress');
+  if (p) p.textContent = doneCount + ' / 12 已过节点';
+}
+
+function renderCalendar() {
+  var grid = document.getElementById('cal-grid');
+  var monthLabel = document.getElementById('cal-month');
+  if (!grid) return;
+  var base = state.calMonth || todayStr();
+  var p = base.split('-');
+  var y = Number(p[0]), mo = Number(p[1]);
+  var first = new Date(y, mo - 1, 1);
+  var startWd = first.getDay();
+  var daysInMonth = new Date(y, mo, 0).getDate();
+  if (monthLabel) monthLabel.textContent = y + ' 年 ' + mo + ' 月';
+  var html = WD.map(function (w) { return '<div class="hd">' + w + '</div>'; }).join('');
+  for (var b = 0; b < startWd; b++) html += '<div class="cell blank"></div>';
+  var total = state.routines.length || 1;
+  for (var d = 1; d <= daysInMonth; d++) {
+    var ds = y + '-' + pad(mo) + '-' + pad(d);
+    var done = state.routines.filter(function (r) { return r.checks && r.checks[ds]; }).length;
+    var ratio = state.routines.length ? done / total : 0;
+    var color = ratio === 0 ? '#F3EFE2' : ratio <= 0.4 ? '#C8E9DF' : ratio <= 0.7 ? '#6FD3BE' : ratio < 1 ? '#26C6A8' : '#16110B';
+    var txtColor = ratio >= 1 ? '#FFFDF3' : '#16110B';
+    html += '<div class="cell' + (ds === todayStr() ? ' today' : '') + '" style="background:' + color + ';color:' + txtColor + '" title="' + ds + ' 打卡 ' + done + '/' + total + '">' + d + '</div>';
+  }
+  grid.innerHTML = html;
+}
+
+function renderAffairs() {
+  var box = document.getElementById('affair-list');
+  if (!box) return;
+  if (!state.affairs.length) { box.innerHTML = '<div class="empty">还没有时政内容，点「+ 新增」添加</div>'; return; }
+  var list = state.affairs.slice().sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
+  var colors = { '时政': '#FF5A5F', '经济': '#FFC93C', '民生': '#2ED573', '科技': '#4D8BFF', '国际': '#B15CFF', '文化': '#FF7BC2' };
+  box.innerHTML = list.map(function (a) {
+    return '<div class="affair' + (a.read ? ' read' : '') + '">' +
+      '<div class="af-ic" style="background:' + (colors[a.tag] || '#FFC93C') + '">' + esc((a.tag || '时')[0]) + '</div>' +
+      '<div class="grow" style="flex:1;min-width:0">' +
+      '<div class="af-t">' + esc(a.title) + '</div>' +
+      '<div class="af-s">' + esc(a.summary || '') + '</div>' +
+      '<div class="af-m"><span>' + esc(a.date || '') + '</span><span>#' + esc(a.tag || '') + '</span>' +
+      '<button class="btn sm ghost" data-act="toggle-affair" data-id="' + a.id + '" style="margin-left:auto;min-height:28px;padding:2px 9px">' + (a.read ? '标未读' : '标已读') + '</button>' +
+      '<button class="btn sm ghost" data-act="del-affair" data-id="' + a.id + '" style="min-height:28px;padding:2px 9px">删</button>' +
+      '</div></div></div>';
+  }).join('');
+}
+
+function renderTasks() {
+  var box = document.getElementById('task-list');
+  if (!box) return;
+  var subjSel = document.getElementById('task-subject');
+  if (subjSel && subjSel.options.length <= 1) {
+    subjSel.innerHTML = '<option value="">全部科目</option>' + SUBJECTS.map(function (s) { return '<option value="' + s.name + '">' + s.name + '</option>'; }).join('');
+  }
+  var f = state.taskFilter;
+  var list = state.tasks.slice();
+  if (state.showArchive) list = list.filter(function (t) { return t.archived; });
+  else list = list.filter(function (t) { return !t.archived; });
+
+  if (f === 'today') list = list.filter(function (t) { return !t.done && (t.due === todayStr() || !t.due); });
+  else if (f === 'overdue') list = list.filter(taskIsOverdue);
+  else if (f === 'done') list = list.filter(function (t) { return t.done; });
+  if (state.taskSubject) list = list.filter(function (t) { return t.subject === state.taskSubject; });
+  if (state.taskSearch) {
+    var kw = state.taskSearch.toLowerCase();
+    list = list.filter(function (t) { return (t.title || '').toLowerCase().indexOf(kw) >= 0; });
+  }
+  var pr = { P0: 0, P1: 1, P2: 2 };
+  list.sort(function (a, b) {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    var ao = taskIsOverdue(a) ? 0 : 1, bo = taskIsOverdue(b) ? 0 : 1;
+    if (ao !== bo) return ao - bo;
+    return (pr[a.priority] || 9) - (pr[b.priority] || 9);
+  });
+
+  if (!list.length) { box.innerHTML = '<div class="empty">' + (state.showArchive ? '归档里还没有内容' : '没有符合条件的任务') + '</div>'; return; }
+  box.innerHTML = list.map(function (t) {
+    var od = taskIsOverdue(t);
+    return '<div class="row' + (t.done ? ' done' : '') + (od ? ' overdue' : '') + '">' +
+      '<button class="checkbox' + (t.done ? ' on' : '') + '" data-act="toggle-task" data-id="' + t.id + '" aria-label="切换完成"><svg viewBox="0 0 24 24" fill="none" stroke="#08310F" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></button>' +
+      '<div class="grow"><div class="t">' + esc(t.title) + '</div><div class="meta">' +
+      '<span class="tag p' + (t.priority || 'P1').slice(1).toLowerCase() + '">' + esc(t.priority || 'P1') + '</span>' +
+      '<span class="tag date">' + esc(t.subject || '未分类') + '</span>' +
+      '<span class="tag' + (od ? ' od' : ' date') + '">' + (t.due ? fmtMD(t.due) : '无期限') + (od ? ' · 逾期' : '') + '</span>' +
+      '</div></div>' +
+      (state.showArchive ? '<button class="btn sm" data-act="unarchive" data-id="' + t.id + '">恢复</button>' : '') +
+      '<button class="btn sm ghost" data-act="archive-one" data-id="' + t.id + '" title="归档">归档</button>' +
+      '<button class="btn sm red" data-act="del-task" data-id="' + t.id + '">删</button>' +
+      '</div>';
+  }).join('');
+}
+
+function renderFocus() {
+  var t = todayStr();
+  var todaySec = state.focus.filter(function (r) { return r.date === t; })
+    .reduce(function (a, r) { return a + (Number(r.seconds) || 0); }, 0);
+  var goalMin = Number(state.settings.dailyGoal) || 0;
+  var doneMin = Math.round(todaySec / 60);
+  var pct = goalMin ? clamp(doneMin / goalMin, 0, 1) : 0;
+
+  var ring = document.getElementById('goal-ring');
+  if (ring) ring.innerHTML = svgRing(pct, 110, 13, pct >= 1 ? '#2ED573' : '#26C6A8', '#EFE7CF');
+  var gt = document.getElementById('goal-text');
+  if (gt) gt.textContent = doneMin + ' / ' + goalMin + ' 分钟';
+  var gs = document.getElementById('goal-sub');
+  if (gs) gs.textContent = pct >= 1 ? '目标已达成，继续加油！' : '还差 ' + Math.max(0, goalMin - doneMin) + ' 分钟达标';
+
+  var brk = document.getElementById('brk-len');
+  if (brk) brk.textContent = state.settings.breakLen || 50;
+
+  // 近 7 天节奏图
+  var days = last7Days();
+  var bars = days.map(function (d) {
+    var m = Math.round(state.focus.filter(function (r) { return r.date === d; })
+      .reduce(function (a, r) { return a + (Number(r.seconds) || 0); }, 0) / 60);
+    return { label: '周' + WD[new Date(d.split('-')[0], d.split('-')[1] - 1, d.split('-')[2]).getDay()], value: m, color: '#26C6A8' };
+  });
+  var chart = document.getElementById('focus-chart');
+  if (chart) chart.innerHTML = svgBars(bars, {});
+  var wt = document.getElementById('focus-weektotal');
+  if (wt) wt.textContent = '本周合计 ' + bars.reduce(function (a, b) { return a + b.value; }, 0) + ' 分钟';
+
+  // 绑定任务下拉
+  var sel = document.getElementById('focus-task-select');
+  if (sel) {
+    var cur = sel.value;
+    var opts = ['<option value="">不绑定任务</option>'].concat(activeTasks().filter(function (x) { return !x.done; }).map(function (x) {
+      return '<option value="' + x.id + '">' + esc(x.title) + '</option>';
+    }));
+    sel.innerHTML = opts.join('');
+    if (cur) sel.value = cur;
+  }
+}
+
+function renderQuestions() {
+  var all = state.questions;
+  var t = todayStr();
+  var total = all.reduce(function (a, r) { return a + (Number(r.count) || 0); }, 0);
+  var todayQ = all.filter(function (r) { return r.date === t; }).reduce(function (a, r) { return a + (Number(r.count) || 0); }, 0);
+  var c = all.reduce(function (a, r) { return a + (Number(r.correct) || 0); }, 0);
+  var acc = total ? Math.round(c / total * 100) : 0;
+  var daysSet = {};
+  all.forEach(function (r) { daysSet[r.date] = 1; });
+  var el;
+  if ((el = document.getElementById('qs-total'))) el.textContent = total;
+  if ((el = document.getElementById('qs-today'))) el.textContent = todayQ;
+  if ((el = document.getElementById('qs-acc'))) el.textContent = acc + '%';
+  if ((el = document.getElementById('qs-days'))) el.textContent = Object.keys(daysSet).length;
+
+  // 堆叠趋势
+  var days = last7Days();
+  var series = SUBJECTS.map(function (s) {
+    return {
+      name: s.name, color: s.color,
+      values: days.map(function (d) {
+        return all.filter(function (r) { return r.date === d && r.subject === s.name; })
+          .reduce(function (a, r) { return a + (Number(r.count) || 0); }, 0);
+      })
+    };
+  });
+  var chart = document.getElementById('qs-chart');
+  if (chart) chart.innerHTML = svgStacked(days, series);
+  var legend = document.getElementById('qs-legend');
+  if (legend) legend.innerHTML = SUBJECTS.map(function (s) { return '<span><i style="background:' + s.color + '"></i>' + s.name + '</span>'; }).join('');
+
+  // 各科目累计表
+  var tb = document.querySelector('#qs-table tbody');
+  if (tb) {
+    tb.innerHTML = SUBJECTS.map(function (s) {
+      var rows = all.filter(function (r) { return r.subject === s.name; });
+      var q = rows.reduce(function (a, r) { return a + (Number(r.count) || 0); }, 0);
+      var cc = rows.reduce(function (a, r) { return a + (Number(r.correct) || 0); }, 0);
+      var a2 = q ? Math.round(cc / q * 100) : 0;
+      var bg = a2 >= 80 ? '#2ED573' : a2 >= 60 ? '#FFC93C' : '#FF5A5F';
+      return '<tr><td><b>' + s.name + '</b></td><td>' + q + '</td><td>' + cc + '</td>' +
+        '<td><span class="acc-pill" style="background:' + bg + '">' + a2 + '%</span></td>' +
+        '<td><button class="btn sm ghost" data-act="del-subject" data-subject="' + s.name + '" style="min-height:28px;padding:2px 8px">清空</button></td></tr>';
+    }).join('');
+  }
+
+  var ds = document.getElementById('q-date');
+  if (ds && !ds.value) ds.value = t;
+  var ss = document.getElementById('q-subject');
+  if (ss && ss.options.length === 0) ss.innerHTML = SUBJECTS.map(function (s) { return '<option value="' + s.name + '">' + s.name + '</option>'; }).join('');
+}
+
+function renderOcr() {
+  var box = document.getElementById('ocr-list');
+  var cnt = document.getElementById('ocr-count');
+  if (cnt) cnt.textContent = state.ocr.length + ' 条';
+  if (!box) return;
+  if (!state.ocr.length) { box.innerHTML = '<div class="empty">摘录库为空，识别保存后会出现在这里</div>'; return; }
+  box.innerHTML = state.ocr.slice().sort(function (a, b) { return (b.time || 0) - (a.time || 0); }).map(function (o) {
+    return '<div class="ocr-item"><div class="txt">' + esc(o.text) + '</div>' +
+      '<button class="btn sm red" data-act="del-ocr" data-id="' + o.id + '">删</button></div>';
+  }).join('');
+}
+
+/* 闪卡渲染 */
+function renderCards() {
+  var front = document.getElementById('fc-front');
+  var back = document.getElementById('fc-back');
+  var cnt = document.getElementById('fc-count');
+  if (!front || !back) return;
+  if (!state.cards.length) {
+    front.textContent = '还没有卡片，点「+ 卡片」新建';
+    back.textContent = '—';
+    if (cnt) cnt.textContent = '0 / 0';
+    return;
+  }
+  state.fcIndex = clamp(state.fcIndex, 0, state.cards.length - 1);
+  var c = state.cards[state.fcIndex];
+  front.textContent = c.front;
+  back.textContent = c.back;
+  if (cnt) cnt.textContent = (state.fcIndex + 1) + ' / ' + state.cards.length;
+}
+
+function renderSettings() {
+  var s = state.settings;
+  var set = function (id, v) { var el = document.getElementById(id); if (el && document.activeElement !== el) el.value = v; };
+  set('s-examName', s.examName || '');
+  set('s-examDate', s.examDate || '');
+  set('s-school', s.school || '');
+  set('s-major', s.major || '');
+  set('s-dailyGoal', s.dailyGoal || 0);
+  set('s-breakLen', s.breakLen || 50);
+
+  var sw = document.getElementById('theme-swatches');
+  if (sw) {
+    sw.innerHTML = THEMES.map(function (c) {
+      return '<button class="sw' + (c === s.theme ? ' on' : '') + '" data-act="theme" data-color="' + c + '" style="background:' + c + '" aria-label="主题色"></button>';
+    }).join('');
+  }
+}
+
+/* ---------------- ⑤ 调度层：唯一统一刷新入口 ---------------- */
+function refreshAll() {
+  applyTheme();
+  renderCountdown();
+  renderQuote();
+  renderTodayList();
+  renderOverviewRoutine();
+  renderOverviewQuestions();
+  renderRoutineView();
+  renderTimeline();
+  renderCalendar();
+  renderAffairs();
+  renderTasks();
+  renderFocus();
+  renderQuestions();
+  renderOcr();
+  renderCards();
+  renderSettings();
+  updateNavBadge();
+  checkBackupHint();
+}
+
+function updateNavBadge() {
+  var n = activeTasks().filter(function (t) { return !t.done && (taskIsOverdue(t) || t.due === todayStr() || !t.due); }).length;
+  var b = document.getElementById('nb-task');
+  if (!b) return;
+  if (n > 0) { b.style.display = ''; b.textContent = n; } else b.style.display = 'none';
+}
+
+function applyTheme() {
+  var c = (state.settings && state.settings.theme) || '#FFF6D6';
+  document.body.style.background = c;
+}
+
+function checkBackupHint() {
+  var n = state.tasks.length + state.questions.length + state.focus.length;
+  var hint = document.getElementById('backupHint');
+  var txt = document.getElementById('backupHintText');
+  if (!hint) return;
+  if (n >= 30 && !sessionStorage.getItem('wb_kaoyan_hint_dismissed')) {
+    hint.style.display = '';
+    if (txt) {
+      txt.innerHTML = '数据已积累 <b>' + n + '</b> 条，建议点击右上角「导出」做一次备份。' +
+        '<button class="btn sm ghost" id="hintDismiss" style="margin-left:8px;min-height:28px;padding:2px 10px">知道了</button>';
+      var d = document.getElementById('hintDismiss');
+      if (d) d.addEventListener('click', function () { sessionStorage.setItem('wb_kaoyan_hint_dismissed', '1'); hint.style.display = 'none'; });
+    }
+  } else hint.style.display = 'none';
+}
+
+/* ---------------- ⑥ 事件层 ---------------- */
+var VIEWS = ['overview', 'routine', 'timeline', 'board', 'tasks', 'focus', 'questions', 'ocr', 'tools', 'settings'];
+function showView(v) {
+  if (VIEWS.indexOf(v) < 0) v = 'overview';
+  VIEWS.forEach(function (name) {
+    var el = document.getElementById('view-' + name);
+    if (el) el.classList.toggle('active', name === v);
+  });
+  var items = document.querySelectorAll('.nav-item');
+  for (var i = 0; i < items.length; i++) items[i].classList.toggle('active', items[i].getAttribute('data-view') === v);
+  setPageTitle(v);
+  closeSidebar();
+  window.scrollTo(0, 0);
+  refreshAll();
+}
+
+function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('backdrop').classList.add('show'); }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('backdrop').classList.remove('show'); }
+
+function toast(msg) {
+  var el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(function () { el.classList.remove('show'); }, 1900);
+}
+
+function openModal(id) { var m = document.getElementById(id); if (m) m.classList.add('show'); }
+function closeModal(id) { var m = document.getElementById(id); if (m) m.classList.remove('show'); }
+
+var confirmCb = null;
+function askConfirm(title, msg, cb) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-msg').textContent = msg;
+  confirmCb = cb;
+  openModal('confirmModal');
+}
+document.getElementById('confirm-ok').addEventListener('click', function () {
+  closeModal('confirmModal');
+  if (typeof confirmCb === 'function') { var f = confirmCb; confirmCb = null; f(); }
+});
+document.getElementById('confirm-cancel').addEventListener('click', function () {
+  confirmCb = null; closeModal('confirmModal');
+});
+
+/* ===== 导航 ===== */
+document.getElementById('nav').addEventListener('click', function (e) {
+  var b = e.target.closest('.nav-item');
+  if (!b) return;
+  showView(b.getAttribute('data-view'));
+});
+document.getElementById('hamb').addEventListener('click', openSidebar);
+document.getElementById('backdrop').addEventListener('click', closeSidebar);
+
+/* ===== 顶部导出 / 导入 ===== */
+function buildExport() {
+  return {
+    _meta: { app: '考研备考工作台', version: 1, exportedAt: new Date().toISOString() },
+    tables: {
+      tasks: state.tasks, routines: state.routines, focus: state.focus,
+      questions: state.questions, affairs: state.affairs, settings: state.settings,
+      ocr: state.ocr, cards: state.cards
+    }
+  };
+}
+function doExport() {
+  try {
+    var blob = new Blob([JSON.stringify(buildExport(), null, 2)], { type: 'application/json' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '考研备考工作台-备份-' + todayStr() + '.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); document.body.removeChild(a); }, 500);
+    toast('已导出备份文件');
+  } catch (e) { toast('导出失败：' + e.message); }
+}
+function doImport() { document.getElementById('fileImport').click(); }
+document.getElementById('btnExport').addEventListener('click', doExport);
+document.getElementById('btnExport2').addEventListener('click', doExport);
+document.getElementById('btnImport').addEventListener('click', doImport);
+document.getElementById('btnImport2').addEventListener('click', doImport);
+document.getElementById('fileImport').addEventListener('change', function (e) {
+  var f = e.target.files && e.target.files[0];
+  if (!f) return;
+  var reader = new FileReader();
+  reader.onload = function () {
+    try {
+      var obj = JSON.parse(reader.result);
+      var tab = obj.tables || obj;
+      askConfirm('导入确认', '导入将覆盖当前全部数据，确定继续吗？', function () {
+        if (Array.isArray(tab.tasks)) state.tasks = tab.tasks;
+        if (Array.isArray(tab.routines)) state.routines = tab.routines;
+        if (Array.isArray(tab.focus)) state.focus = tab.focus;
+        if (Array.isArray(tab.questions)) state.questions = tab.questions;
+        if (Array.isArray(tab.affairs)) state.affairs = tab.affairs;
+        if (Array.isArray(tab.ocr)) state.ocr = tab.ocr;
+        if (Array.isArray(tab.cards)) state.cards = tab.cards;
+        if (tab.settings && typeof tab.settings === 'object') state.settings = Object.assign(defaultSettings(), tab.settings);
+        persist();
+        refreshAll();
+        toast('导入成功，共恢复 ' + (state.tasks.length + state.questions.length) + ' 条记录');
+      });
+    } catch (err) { toast('文件解析失败，请选择正确的备份文件'); }
+  };
+  reader.readAsText(f);
+  e.target.value = '';
+});
+
+/* ===== 任务筛选 / 搜索 ===== */
+document.getElementById('task-filters').addEventListener('click', function (e) {
+  var b = e.target.closest('.fbtn');
+  if (!b) return;
+  state.taskFilter = b.getAttribute('data-filter');
+  var all = document.querySelectorAll('#task-filters .fbtn');
+  for (var i = 0; i < all.length; i++) all[i].classList.toggle('active', all[i] === b);
+  renderTasks();
+});
+var searchTimer = null;
+document.getElementById('task-search').addEventListener('input', function (e) {
+  state.taskSearch = e.target.value.trim();
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(function () { renderTasks(); }, 150);
+});
+document.getElementById('task-subject').addEventListener('change', function (e) {
+  state.taskSubject = e.target.value;
+  renderTasks();
+});
+document.getElementById('btnTaskArchive').addEventListener('click', function (e) {
+  state.showArchive = !state.showArchive;
+  e.target.textContent = state.showArchive ? '看任务' : '看归档';
+  renderTasks();
+});
+
+/* ===== 任务弹窗 ===== */
+function openTaskModal() {
+  document.getElementById('m-task-title').value = '';
+  document.getElementById('m-task-subject').value = SUBJECTS[0].name;
+  document.getElementById('m-task-priority').value = 'P1';
+  document.getElementById('m-task-due').value = todayStr();
+  openModal('taskModal');
+  setTimeout(function () { document.getElementById('m-task-title').focus(); }, 60);
+}
+document.getElementById('btnTaskAdd').addEventListener('click', openTaskModal);
+document.getElementById('taskModalX').addEventListener('click', function () { closeModal('taskModal'); });
+document.getElementById('m-task-cancel').addEventListener('click', function () { closeModal('taskModal'); });
+document.getElementById('m-task-save').addEventListener('click', function () {
+  var title = document.getElementById('m-task-title').value.trim();
+  if (!title) { toast('请填写任务内容'); return; }
+  state.tasks.push({
+    id: uid(), title: title,
+    subject: document.getElementById('m-task-subject').value,
+    priority: document.getElementById('m-task-priority').value,
+    due: document.getElementById('m-task-due').value || '',
+    done: false, archived: false, createdAt: Date.now()
+  });
+  persist('tasks');
+  closeModal('taskModal');
+  refreshAll();
+  toast('任务已添加');
+});
+
+/* ===== 作息弹窗 / 操作 ===== */
+function openRoutineModal() {
+  document.getElementById('m-routine-label').value = '';
+  document.getElementById('m-routine-cat').value = '';
+  openModal('routineModal');
+  setTimeout(function () { document.getElementById('m-routine-label').focus(); }, 60);
+}
+document.getElementById('btnRoutineAdd').addEventListener('click', openRoutineModal);
+document.getElementById('routineModalX').addEventListener('click', function () { closeModal('routineModal'); });
+document.getElementById('m-routine-cancel').addEventListener('click', function () { closeModal('routineModal'); });
+document.getElementById('m-routine-save').addEventListener('click', function () {
+  var label = document.getElementById('m-routine-label').value.trim();
+  if (!label) { toast('请填写时段名称'); return; }
+  state.routines.push({
+    id: uid(),
+    start: document.getElementById('m-routine-start').value || '08:00',
+    end: document.getElementById('m-routine-end').value || '09:00',
+    label: label,
+    cat: document.getElementById('m-routine-cat').value.trim(),
+    checks: {}
+  });
+  state.routines.sort(function (a, b) { return (a.start || '').localeCompare(b.start || ''); });
+  persist('routines');
+  closeModal('routineModal');
+  refreshAll();
+  toast('时段已添加');
+});
+document.getElementById('btnRoutineReset').addEventListener('click', function () {
+  askConfirm('恢复默认作息', '将用默认的 9 个作息时段替换当前作息表（打卡记录会清空），确定吗？', function () {
+    state.routines = defaultRoutines();
+    persist('routines');
+    refreshAll();
+    toast('已恢复默认作息');
+  });
+});
+document.getElementById('routine-date').addEventListener('change', function (e) {
+  if (!e.target.value) e.target.value = todayStr();
+  renderRoutineView();
+  updateRoutineProgress();
+});
+
+/* ===== 时政弹窗 ===== */
+function openAffairModal() {
+  document.getElementById('m-affair-title').value = '';
+  document.getElementById('m-affair-summary').value = '';
+  document.getElementById('m-affair-date').value = todayStr();
+  openModal('affairModal');
+  setTimeout(function () { document.getElementById('m-affair-title').focus(); }, 60);
+}
+document.getElementById('btnAffairAdd').addEventListener('click', openAffairModal);
+document.getElementById('affairModalX').addEventListener('click', function () { closeModal('affairModal'); });
+document.getElementById('m-affair-cancel').addEventListener('click', function () { closeModal('affairModal'); });
+document.getElementById('m-affair-save').addEventListener('click', function () {
+  var title = document.getElementById('m-affair-title').value.trim();
+  if (!title) { toast('请填写标题'); return; }
+  state.affairs.push({
+    id: uid(), title: title,
+    summary: document.getElementById('m-affair-summary').value.trim(),
+    tag: document.getElementById('m-affair-tag').value,
+    date: document.getElementById('m-affair-date').value || todayStr(),
+    read: false
+  });
+  persist('affairs');
+  closeModal('affairModal');
+  refreshAll();
+  toast('已添加时政热点');
+});
+
+/* ===== 闪卡弹窗 ===== */
+function openCardModal() {
+  document.getElementById('m-card-front').value = '';
+  document.getElementById('m-card-back').value = '';
+  openModal('cardModal');
+  setTimeout(function () { document.getElementById('m-card-front').focus(); }, 60);
+}
+document.getElementById('btnCardAdd').addEventListener('click', openCardModal);
+document.getElementById('cardModalX').addEventListener('click', function () { closeModal('cardModal'); });
+document.getElementById('m-card-cancel').addEventListener('click', function () { closeModal('cardModal'); });
+document.getElementById('m-card-save').addEventListener('click', function () {
+  var front = document.getElementById('m-card-front').value.trim();
+  var back = document.getElementById('m-card-back').value.trim();
+  if (!front) { toast('请填写卡片正面'); return; }
+  state.cards.push({ id: uid(), front: front, back: back });
+  state.fcIndex = state.cards.length - 1;
+  persist('cards');
+  closeModal('cardModal');
+  renderCards();
+  document.getElementById('flashcard').classList.remove('on');
+  toast('卡片已添加');
+});
+document.getElementById('flashcard').addEventListener('click', function () {
+  this.classList.toggle('on');
+});
+document.getElementById('btnCardPrev').addEventListener('click', function () {
+  if (!state.cards.length) return;
+  state.fcIndex = (state.fcIndex - 1 + state.cards.length) % state.cards.length;
+  document.getElementById('flashcard').classList.remove('on');
+  renderCards();
+});
+document.getElementById('btnCardNext').addEventListener('click', function () {
+  if (!state.cards.length) return;
+  state.fcIndex = (state.fcIndex + 1) % state.cards.length;
+  document.getElementById('flashcard').classList.remove('on');
+  renderCards();
+});
+
+/* ===== 统一委托：data-act 动作 ===== */
+document.body.addEventListener('click', function (e) {
+  var btn = e.target.closest('[data-act]');
+  if (!btn) return;
+  var act = btn.getAttribute('data-act');
+  var id = btn.getAttribute('data-id');
+
+  if (act === 'done-task' || act === 'toggle-task') {
+    var t = state.tasks.filter(function (x) { return x.id === id; })[0];
+    if (!t) return;
+    t.done = !t.done;
+    if (t.done) { t.doneAt = Date.now(); toast('已完成，干得漂亮！'); } else { delete t.doneAt; }
+    persist('tasks'); refreshAll();
+  } else if (act === 'archive-one') {
+    var t2 = state.tasks.filter(function (x) { return x.id === id; })[0];
+    if (!t2) return;
+    t2.archived = true; persist('tasks'); refreshAll(); toast('已归档');
+  } else if (act === 'unarchive') {
+    var t3 = state.tasks.filter(function (x) { return x.id === id; })[0];
+    if (!t3) return;
+    t3.archived = false; persist('tasks'); refreshAll(); toast('已恢复');
+  } else if (act === 'del-task') {
+    var tt = state.tasks.filter(function (x) { return x.id === id; })[0];
+    if (!tt) return;
+    askConfirm('删除任务', '确定删除「' + tt.title + '」吗？该操作不可恢复。', function () {
+      state.tasks = state.tasks.filter(function (x) { return x.id !== id; });
+      persist('tasks'); refreshAll(); toast('已删除');
+    });
+  } else if (act === 'toggle-routine') {
+    var r = state.routines.filter(function (x) { return x.id === id; })[0];
+    if (!r) return;
+    var d = btn.getAttribute('data-date') || todayStr();
+    r.checks = r.checks || {};
+    if (r.checks[d]) delete r.checks[d]; else r.checks[d] = true;
+    persist('routines'); refreshAll();
+  } else if (act === 'del-routine') {
+    var r2 = state.routines.filter(function (x) { return x.id === id; })[0];
+    if (!r2) return;
+    askConfirm('删除时段', '确定删除作息时段「' + r2.label + '」吗？', function () {
+      state.routines = state.routines.filter(function (x) { return x.id !== id; });
+      persist('routines'); refreshAll(); toast('已删除');
+    });
+  } else if (act === 'toggle-affair') {
+    var af = state.affairs.filter(function (x) { return x.id === id; })[0];
+    if (!af) return;
+    af.read = !af.read; persist('affairs'); renderAffairs();
+  } else if (act === 'del-affair') {
+    askConfirm('删除热点', '确定删除这条时政内容吗？', function () {
+      state.affairs = state.affairs.filter(function (x) { return x.id !== id; });
+      persist('affairs'); renderAffairs(); toast('已删除');
+    });
+  } else if (act === 'del-ocr') {
+    state.ocr = state.ocr.filter(function (x) { return x.id !== id; });
+    persist('ocr'); renderOcr(); toast('已删除');
+  } else if (act === 'del-subject') {
+    var sub = btn.getAttribute('data-subject');
+    askConfirm('清空科目记录', '确定清空「' + sub + '」的全部刷题记录吗？', function () {
+      state.questions = state.questions.filter(function (x) { return x.subject !== sub; });
+      persist('questions'); refreshAll(); toast('已清空');
+    });
+  } else if (act === 'theme') {
+    state.settings.theme = btn.getAttribute('data-color') || '#FFF6D6';
+    persist('settings'); applyTheme(); renderSettings(); toast('主题已切换');
+  }
+});
+
+/* ===== 看板：月份切换 ===== */
+document.getElementById('cal-prev').addEventListener('click', function () {
+  var base = state.calMonth || todayStr();
+  var p = base.split('-');
+  var d = new Date(Number(p[0]), Number(p[1]) - 1, 1);
+  d.setMonth(d.getMonth() - 1);
+  state.calMonth = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-01';
+  renderCalendar();
+});
+document.getElementById('cal-next').addEventListener('click', function () {
+  var base = state.calMonth || todayStr();
+  var p = base.split('-');
+  var d = new Date(Number(p[0]), Number(p[1]) - 1, 1);
+  d.setMonth(d.getMonth() + 1);
+  state.calMonth = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-01';
+  renderCalendar();
+});
+
+/* ===== 刷题录入 ===== */
+document.getElementById('btnQAdd').addEventListener('click', function () {
+  var date = document.getElementById('q-date').value || todayStr();
+  var subject = document.getElementById('q-subject').value || SUBJECTS[0].name;
+  var count = Number(document.getElementById('q-count').value);
+  var correct = Number(document.getElementById('q-correct').value);
+  if (!count || count <= 0) { toast('请填写做题数'); return; }
+  if (correct < 0) correct = 0;
+  if (correct > count) correct = count;
+  state.questions.push({ id: uid(), date: date, subject: subject, count: count, correct: correct });
+  persist('questions');
+  document.getElementById('q-count').value = '';
+  document.getElementById('q-correct').value = '';
+  refreshAll();
+  toast('已记录 ' + count + ' 题');
+});
+
+/* ===== 专注计时 ===== */
+var F = { id: null, sec: 0, running: false, lastBreak: 0 };
+function fmtClock(s) {
+  var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), ss = s % 60;
+  return pad(h) + ':' + pad(m) + ':' + pad(ss);
+}
+function focusTick() {
+  F.sec++;
+  var el = document.getElementById('focus-clock');
+  if (el) el.textContent = fmtClock(F.sec);
+  var bl = (Number(state.settings.breakLen) || 50) * 60;
+  if (bl > 0 && F.sec > 0 && F.sec % bl === 0 && F.sec > F.lastBreak) {
+    F.lastBreak = F.sec;
+    var banner = document.getElementById('breakBanner');
+    if (banner) {
+      banner.classList.add('show');
+      toast('该休息一下啦～');
+      setTimeout(function () { banner.classList.remove('show'); }, 9000);
+    }
+  }
+}
+function currentFocusTaskTitle() {
+  var sel = document.getElementById('focus-task-select');
+  if (!sel || !sel.value) return '自主学习';
+  var t = state.tasks.filter(function (x) { return x.id === sel.value; })[0];
+  return t ? t.title : '自主学习';
+}
+function syncFocusLabel() {
+  var el = document.getElementById('focus-task-label');
+  if (el) el.textContent = '任务：' + currentFocusTaskTitle();
+}
+document.getElementById('focus-task-select').addEventListener('change', syncFocusLabel);
+document.getElementById('btnFocusStart').addEventListener('click', function () {
+  if (F.running) { toast('计时进行中'); return; }
+  F.running = true;
+  F.id = setInterval(focusTick, 1000);
+  syncFocusLabel();
+  toast('开始专注，加油！');
+});
+document.getElementById('btnFocusPause').addEventListener('click', function () {
+  if (!F.running) return;
+  F.running = false;
+  clearInterval(F.id); F.id = null;
+  toast('已暂停');
+});
+document.getElementById('btnFocusStop').addEventListener('click', function () {
+  if (F.running) { F.running = false; clearInterval(F.id); F.id = null; }
+  if (F.sec >= 60) {
+    state.focus.push({ id: uid(), date: todayStr(), seconds: F.sec, taskTitle: currentFocusTaskTitle() });
+    persist('focus');
+    toast('已保存 ' + Math.round(F.sec / 60) + ' 分钟专注');
+  } else if (F.sec > 0) {
+    toast('不足 1 分钟，未保存');
+  }
+  F.sec = 0; F.lastBreak = 0;
+  var el = document.getElementById('focus-clock');
+  if (el) el.textContent = '00:00:00';
+  var banner = document.getElementById('breakBanner');
+  if (banner) banner.classList.remove('show');
+  refreshAll();
+});
+
+/* ===== 进阶工具：抽签 ===== */
+document.getElementById('btnPick').addEventListener('click', function () {
+  var pool = activeTasks().filter(function (t) { return !t.done; });
+  var box = document.getElementById('pickResult');
+  if (!pool.length) { box.textContent = '没有可抽取的任务，先去添加吧～'; return; }
+  var pick = pool[Math.floor(Math.random() * pool.length)];
+  box.innerHTML = '<b>' + esc(pick.title) + '</b><br><span class="mini muted">' + esc(pick.subject || '') + ' · ' + esc(pick.priority || '') + (pick.due ? ' · 截止 ' + fmtMD(pick.due) : '') + '</span>';
+});
+
+/* ===== 进阶工具：倒计时 ===== */
+var CD = { id: null, remain: 0 };
+function fmtMS(s) { var m = Math.floor(s / 60), ss = s % 60; return pad(m) + ':' + pad(ss); }
+function cdTick() {
+  CD.remain--;
+  var el = document.getElementById('cdownDisplay');
+  if (el) el.textContent = fmtMS(Math.max(0, CD.remain));
+  if (CD.remain <= 0) {
+    clearInterval(CD.id); CD.id = null;
+    toast('倒计时结束：' + (document.getElementById('cdLabel').value || '时间到'));
+  }
+}
+document.getElementById('btnCdownStart').addEventListener('click', function () {
+  var min = Number(document.getElementById('cdMin').value) || 10;
+  CD.remain = min * 60;
+  if (CD.id) clearInterval(CD.id);
+  var el = document.getElementById('cdownDisplay');
+  if (el) el.textContent = fmtMS(CD.remain);
+  CD.id = setInterval(cdTick, 1000);
+  toast('倒计时开始');
+});
+document.getElementById('btnCdownStop').addEventListener('click', function () {
+  if (CD.id) { clearInterval(CD.id); CD.id = null; }
+  CD.remain = 0;
+  var el = document.getElementById('cdownDisplay');
+  if (el) el.textContent = '--:--';
+  toast('倒计时已停止');
+});
+
+/* ===== 进阶工具：呼吸 ===== */
+var BR = { running: false, timer: null };
+var BR_PHASES = [
+  { t: '吸气', dur: 4, scale: 1.26, color: '#26C6A8' },
+  { t: '屏息', dur: 7, scale: 1.26, color: '#4D8BFF' },
+  { t: '呼气', dur: 8, scale: 0.84, color: '#B15CFF' }
+];
+function brRun(i) {
+  if (!BR.running) return;
+  var p = BR_PHASES[i % 3];
+  var ball = document.getElementById('breatheBall');
+  if (ball) {
+    ball.textContent = p.t + ' ' + p.dur + 's';
+    ball.style.transition = 'transform ' + p.dur + 's ease, background .4s';
+    ball.style.background = p.color;
+    ball.style.transform = 'scale(' + p.scale + ')';
+  }
+  BR.timer = setTimeout(function () { brRun(i + 1); }, p.dur * 1000);
+}
+document.getElementById('btnBreathe').addEventListener('click', function (e) {
+  var ball = document.getElementById('breatheBall');
+  if (BR.running) {
+    BR.running = false; clearTimeout(BR.timer);
+    e.target.textContent = '开始呼吸引导';
+    if (ball) { ball.textContent = '准备'; ball.style.transform = 'scale(1)'; ball.style.background = '#26C6A8'; }
+    toast('已停止');
+    return;
+  }
+  BR.running = true;
+  e.target.textContent = '停止引导';
+  brRun(0);
+});
+
+/* ===== OCR ===== */
+var ocrFile = document.getElementById('ocrFile');
+document.getElementById('ocrDrop').addEventListener('click', function () { ocrFile.click(); });
+function ocrNote(txt) { var el = document.getElementById('ocr-engine-note'); if (el) el.textContent = txt; }
+(function initOcrSupport() {
+  if (typeof window.TextDetector === 'function') {
+    ocrNote('当前浏览器支持自动识别：选择图片后会尝试自动提取文字。');
+  } else {
+    ocrNote('当前浏览器不支持自动 OCR：可选择图片留存，并把题目文字粘贴到下方保存。');
+  }
+})();
+ocrFile.addEventListener('change', function (e) {
+  var f = e.target.files && e.target.files[0];
+  if (!f) return;
+  var reader = new FileReader();
+  reader.onload = function () {
+    var wrap = document.getElementById('ocrPreviewWrap');
+    var drop = document.getElementById('ocrDrop');
+    wrap.innerHTML = '<img id="ocrImg" src="' + reader.result + '" alt="待识别图片">';
+    drop.classList.add('has');
+    drop.innerHTML = '<div class="mini" style="font-weight:800">已选择图片（点击可重新选择）</div>';
+    var img = document.getElementById('ocrImg');
+    if (typeof window.TextDetector === 'function') {
+      try {
+        var det = new window.TextDetector();
+        det.detect(img).then(function (res) {
+          var txt = (res || []).map(function (r) { return r.rawValue; }).join('\n');
+          if (txt) { document.getElementById('ocrText').value = txt; toast('识别完成，记得保存'); }
+          else toast('未识别到文字，可手动粘贴');
+        }).catch(function () { toast('识别失败，请手动粘贴文字'); });
+      } catch (err) { toast('识别组件不可用，请手动粘贴文字'); }
+    } else {
+      toast('已载入图片，请手动粘贴文字后保存');
+    }
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+});
+document.getElementById('btnOcrSave').addEventListener('click', function () {
+  var txt = document.getElementById('ocrText').value.trim();
+  if (!txt) { toast('请先识别或粘贴文字'); return; }
+  state.ocr.push({ id: uid(), text: txt, time: Date.now() });
+  persist('ocr');
+  document.getElementById('ocrText').value = '';
+  renderOcr();
+  toast('已保存到摘录库');
+});
+document.getElementById('btnOcrClear').addEventListener('click', function () {
+  document.getElementById('ocrText').value = '';
+  document.getElementById('ocrPreviewWrap').innerHTML = '';
+  var drop = document.getElementById('ocrDrop');
+  drop.classList.remove('has');
+  drop.innerHTML = '<div>点击选择 / 拍摄图片</div><div class="mini" style="margin-top:6px">支持 JPG · PNG，图片不会上传，仅在本机处理</div>';
+});
+
+/* ===== 设置项绑定 ===== */
+function bindSetting(id, field, transform) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('change', function () {
+    var v = el.value;
+    if (transform) v = transform(v);
+    state.settings[field] = v;
+    persist('settings');
+    refreshAll();
+  });
+}
+bindSetting('s-examName', 'examName');
+bindSetting('s-examDate', 'examDate');
+bindSetting('s-school', 'school');
+bindSetting('s-major', 'major');
+bindSetting('s-dailyGoal', 'dailyGoal', function (v) { return Number(v) || 0; });
+bindSetting('s-breakLen', 'breakLen', function (v) { return Math.max(5, Number(v) || 50); });
+
+/* ===== 数据操作 ===== */
+document.getElementById('btnClearDemo').addEventListener('click', function () {
+  askConfirm('清空示例数据', '将移除所有标记为「示例」的任务、作息打卡、专注与刷题记录，你自己新增的数据不受影响。确定吗？', function () {
+    state.tasks = state.tasks.filter(function (t) { return !t.demo; });
+    state.focus = state.focus.filter(function (t) { return !t.demo; });
+    state.questions = state.questions.filter(function (t) { return !t.demo; });
+    state.affairs = state.affairs.filter(function (t) { return !t.demo; });
+    state.cards = state.cards.filter(function (t) { return !t.demo; });
+    state.routines.forEach(function (r) { r.checks = {}; r.demoCleared = true; });
+    persist();
+    refreshAll();
+    toast('示例数据已清空');
+  });
+});
+document.getElementById('btnClearAll').addEventListener('click', function () {
+  askConfirm('清空全部数据', '这会删除全部任务、作息、专注、刷题、时政与设置数据，且不可恢复！建议先导出备份。确定继续吗？', function () {
+    ['tasks', 'routines', 'focus', 'questions', 'affairs', 'settings', 'ocr', 'cards'].forEach(function (k) { Store.del(KEYS[k]); });
+    Store.set(KEYS.inited, true); // 保留「已初始化」标记，避免清空后重新注入示例数据
+    state.tasks = []; state.routines = defaultRoutines(); state.focus = [];
+    state.questions = []; state.affairs = []; state.ocr = []; state.cards = [];
+    state.settings = defaultSettings();
+    persist();
+    refreshAll();
+    toast('已清空全部数据');
+  });
+});
+
+/* ===== ⑥ 初始化（固定顺序：加载 → 兜底 → 绑定 → 一次性渲染） ===== */
+function ensureDefaults() {
+  if (!state.settings || !state.settings.examDate) state.settings = Object.assign(defaultSettings(), state.settings || {});
+  if (!state.routines || !state.routines.length) state.routines = defaultRoutines();
+  if (!state.calMonth) state.calMonth = todayStr().slice(0, 8) + '01';
+  persist();
+}
+function seedIfEmpty() {
+  // 仅在本机「首次使用」时注入示例数据；用户清空后不再反复注入
+  if (Store.get(KEYS.inited, false)) return;
+  var hasAny = (state.tasks.length || state.questions.length || state.focus.length || state.affairs.length);
+  if (!hasAny) {
+    seedExampleData();
+    loadAll();
+  }
+  Store.set(KEYS.inited, true);
+}
+function init() {
+  loadAll();
+  seedIfEmpty();
+  ensureDefaults();
+  state.calMonth = todayStr().slice(0, 8) + '01';
+  syncFocusLabel();
+  refreshAll();
+  showView('overview');
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+</script>
+</body>
+</html>

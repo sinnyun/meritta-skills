@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<!-- 组件预览页：习惯打卡矩阵 checkin-matrix（复制区见两个标记行之间） -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>组件预览：习惯打卡矩阵</title>
+</head>
+<body style="background:#f5f6fa;margin:0;padding:24px;font-family:-apple-system,'PingFang SC',sans-serif">
+<!-- ⬇ 组件代码开始：整段复制到骨架的模块槽 -->
+<style>
+.cm-grid{width:100%;border-collapse:collapse;font-size:12px}
+.cm-grid th{color:var(--c-sub,#8a90a0);font-weight:400;padding:4px 2px}
+.cm-grid td{padding:3px 2px}
+.cm-name{max-width:0;width:34%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.cm-cell{
+  width:34px;height:34px;margin:0 auto;border-radius:9px;background:var(--c-bg,#f5f6fa);
+  border:1px solid var(--c-line,#eceef3);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .15s;
+}
+.cm-cell svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.cm-cell.on{background:var(--c-primary,#4f6ef7);border-color:var(--c-primary,#4f6ef7)}
+.cm-cell.on svg{opacity:1}
+.cm-streak{font-size:10px;color:var(--c-warn,#f59e0b);font-weight:600;text-align:left;padding-left:6px}
+@media (max-width:380px){ .cm-cell{width:28px;height:28px;border-radius:7px} }
+</style>
+<section class="card" style="background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(31,36,48,.06);padding:16px">
+  <table class="cm-grid" id="cm-table"></table>
+</section>
+<script>
+/* 打卡矩阵：CheckinMatrix.render(el, habits, appId)
+   habits = [{name, days:{"YYYY-MM-DD":true}}]，存储 key = wb_{appId}_habits */
+const CheckinMatrix = {
+  key(appId){ return 'wb_' + appId + '_habits'; },
+  seed(){
+    const d = new Date(); const days = {};
+    for(let i=0;i<7;i++){
+      const t = new Date(d); t.setDate(d.getDate()-i);
+      days[t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')] = Math.random() > .35;
+    }
+    return [
+      {name:'晨间阅读', days},
+      {name:'运动 30 分钟', days},
+      {name:'早睡(23点前)', days},
+    ];
+  },
+  streak(habit, today){
+    let n = 0; const d = new Date(today.replace(/-/g,'/'));
+    for(;;){
+      const k = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      if(habit.days[k]) { n++; d.setDate(d.getDate()-1); } else break;
+    }
+    return n;
+  },
+  render(el, habits, appId, today){
+    today = today || this.todayStr();
+    const d0 = new Date(today);
+    const cols = [];
+    for(let i=6;i>=0;i--){
+      const d = new Date(d0); d.setDate(d0.getDate()-i);
+      cols.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'));
+    }
+    const wd = ['日','一','二','三','四','五','六'];
+    let html = '<tr><th></th>' + cols.map(c => '<th>' + wd[new Date(c.replace(/-/g,'/')).getDay()] + '</th>').join('') + '<th></th></tr>';
+    habits.forEach((h, hi) => {
+      html += '<tr><td class="cm-name">' + h.name.replace(/</g,'&lt;') + '</td>' +
+        cols.map(c =>
+          '<td><div class="cm-cell' + (h.days[c] ? ' on' : '') + '" data-h="' + hi + '" data-day="' + c + '">' +
+          '<svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></div></td>').join('') +
+        '<td><div class="cm-streak">' + this.streak(h, today) + '天</div></td></tr>';
+    });
+    el.innerHTML = html;
+    el.onclick = e => {
+      const cell = e.target.closest('.cm-cell');
+      if(!cell) return;
+      const h = habits[Number(cell.dataset.h)];
+      const day = cell.dataset.day;
+      if(day > today) return;                      // 未来不可打卡
+      h.days[day] = !h.days[day];
+      try{ localStorage.setItem(this.key(appId), JSON.stringify(habits)); }catch(err){}
+      this.render(el, habits, appId, today);       // 自渲染自身，不联动其他模块
+    };
+  },
+  todayStr(){
+    const d = new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+};
+</script>
+<!-- ⬆ 组件代码结束 -->
+
+<script>
+/* 预览演示 */
+document.addEventListener('DOMContentLoaded', () => {
+  const el = document.getElementById('cm-table');
+  let habits;
+  try{ habits = JSON.parse(localStorage.getItem('wb_demo_habits')) || CheckinMatrix.seed(); }
+  catch(e){ habits = CheckinMatrix.seed(); }
+  CheckinMatrix.render(el, habits, 'demo');
+});
+</script>
+</body>
+</html>

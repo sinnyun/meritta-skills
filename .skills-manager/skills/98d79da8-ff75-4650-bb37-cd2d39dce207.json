@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "98d79da8-ff75-4650-bb37-cd2d39dce207",
+  "path": "tech-graph",
+  "path_key": "tech-graph",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}
