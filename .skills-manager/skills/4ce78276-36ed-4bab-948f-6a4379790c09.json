@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "4ce78276-36ed-4bab-948f-6a4379790c09",
+  "path": "figcraft-operator",
+  "path_key": "figcraft-operator",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

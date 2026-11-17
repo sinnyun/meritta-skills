@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "67b8baed-14da-4c0e-8227-8f78d6b780b0",
+  "path": "spec-driven-development-2",
+  "path_key": "spec-driven-development-2",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

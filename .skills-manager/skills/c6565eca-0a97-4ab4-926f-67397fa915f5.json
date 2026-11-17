@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "c6565eca-0a97-4ab4-926f-67397fa915f5",
+  "path": "using-agent-skills-2",
+  "path_key": "using-agent-skills-2",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

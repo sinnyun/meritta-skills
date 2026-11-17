@@ -1,0 +1,3 @@
+interface:
+  display_name: "FigCraft Operator"
+  short_description: "Create editable native FigCraft designs"

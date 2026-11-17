@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "e7704dfa-870f-4c0a-b943-858f221765ac",
+  "path": "idea-refine-2",
+  "path_key": "idea-refine-2",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

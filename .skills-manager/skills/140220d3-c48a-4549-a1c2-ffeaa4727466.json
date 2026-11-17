@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "140220d3-c48a-4549-a1c2-ffeaa4727466",
+  "path": "constraint-driven-development",
+  "path_key": "constraint-driven-development",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

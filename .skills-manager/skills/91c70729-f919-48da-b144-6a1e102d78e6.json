@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "91c70729-f919-48da-b144-6a1e102d78e6",
+  "path": "leafer-ai",
+  "path_key": "leafer-ai",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}

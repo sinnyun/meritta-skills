@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "1ead824a-d262-4b2d-a423-547d7896cc62",
+  "path": "gpui-kit-design-guides",
+  "path_key": "gpui-kit-design-guides",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "import",
+    "ref": null,
+    "subpath": null,
+    "branch": null
+  }
+}
