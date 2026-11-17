@@ -4,7 +4,9 @@
   "path": "figcraft-operator",
   "path_key": "figcraft-operator",
   "enabled": true,
-  "tags": [],
+  "tags": [
+    "设计"
+  ],
   "source": {
     "type": "import",
     "ref": null,
