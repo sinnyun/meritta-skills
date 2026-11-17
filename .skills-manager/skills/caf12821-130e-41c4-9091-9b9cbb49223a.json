@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "caf12821-130e-41c4-9091-9b9cbb49223a",
+  "path": "to-spec",
+  "path_key": "to-spec",
+  "enabled": true,
+  "tags": [
+    "mattpocock"
+  ],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/vinvcn/mattpocock-skills-zh-CN",
+    "subpath": "skills\\engineering\\to-spec",
+    "branch": null
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "a8fa8329-fa65-4023-afdb-cb1f544dee0c",
+  "path": "code-review",
+  "path_key": "code-review",
+  "enabled": true,
+  "tags": [
+    "mattpocock"
+  ],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/vinvcn/mattpocock-skills-zh-CN",
+    "subpath": "skills\\engineering\\code-review",
+    "branch": null
+  }
+}

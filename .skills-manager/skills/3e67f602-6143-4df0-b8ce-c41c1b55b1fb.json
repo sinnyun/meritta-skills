@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "3e67f602-6143-4df0-b8ce-c41c1b55b1fb",
+  "path": "research",
+  "path_key": "research",
+  "enabled": true,
+  "tags": [
+    "mattpocock"
+  ],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/vinvcn/mattpocock-skills-zh-CN",
+    "subpath": "skills\\engineering\\research",
+    "branch": null
+  }
+}

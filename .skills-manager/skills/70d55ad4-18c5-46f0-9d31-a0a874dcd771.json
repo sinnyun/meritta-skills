@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "70d55ad4-18c5-46f0-9d31-a0a874dcd771",
+  "path": "setup-ts-deep-modules",
+  "path_key": "setup-ts-deep-modules",
+  "enabled": true,
+  "tags": [
+    "mattpocock"
+  ],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/vinvcn/mattpocock-skills-zh-CN",
+    "subpath": "skills\\in-progress\\setup-ts-deep-modules",
+    "branch": null
+  }
+}

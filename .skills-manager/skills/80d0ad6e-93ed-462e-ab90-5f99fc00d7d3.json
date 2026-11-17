@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "80d0ad6e-93ed-462e-ab90-5f99fc00d7d3",
+  "path": "ask-matt",
+  "path_key": "ask-matt",
+  "enabled": true,
+  "tags": [
+    "mattpocock"
+  ],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/vinvcn/mattpocock-skills-zh-CN",
+    "subpath": "skills\\engineering\\ask-matt",
+    "branch": null
+  }
+}

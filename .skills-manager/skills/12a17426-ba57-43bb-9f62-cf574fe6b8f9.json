@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "12a17426-ba57-43bb-9f62-cf574fe6b8f9",
+  "path": "tdd",
+  "path_key": "tdd",
+  "enabled": true,
+  "tags": [
+    "mattpocock"
+  ],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/vinvcn/mattpocock-skills-zh-CN",
+    "subpath": "skills\\engineering\\tdd",
+    "branch": null
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "a9813393-371a-48cb-8fad-53e1eea4ab71",
+  "path": "implement",
+  "path_key": "implement",
+  "enabled": true,
+  "tags": [
+    "mattpocock"
+  ],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/vinvcn/mattpocock-skills-zh-CN",
+    "subpath": "skills\\engineering\\implement",
+    "branch": null
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "5906a71e-7b3d-4648-bb2e-b0eb2e75fa20",
+  "path": "writing-fragments",
+  "path_key": "writing-fragments",
+  "enabled": true,
+  "tags": [
+    "mattpocock"
+  ],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/vinvcn/mattpocock-skills-zh-CN",
+    "subpath": "skills\\in-progress\\writing-fragments",
+    "branch": null
+  }
+}

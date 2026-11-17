@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "c870f116-7078-4c9b-9ad9-cb52a7ea17c1",
+  "path": "handoff",
+  "path_key": "handoff",
+  "enabled": true,
+  "tags": [
+    "mattpocock"
+  ],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/vinvcn/mattpocock-skills-zh-CN",
+    "subpath": "skills\\productivity\\handoff",
+    "branch": null
+  }
+}

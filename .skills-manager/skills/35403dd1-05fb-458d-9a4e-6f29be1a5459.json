@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "35403dd1-05fb-458d-9a4e-6f29be1a5459",
+  "path": "teach",
+  "path_key": "teach",
+  "enabled": true,
+  "tags": [
+    "mattpocock"
+  ],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/vinvcn/mattpocock-skills-zh-CN",
+    "subpath": "skills\\productivity\\teach",
+    "branch": null
+  }
+}

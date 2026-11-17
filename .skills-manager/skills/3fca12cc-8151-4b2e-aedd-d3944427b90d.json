@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "3fca12cc-8151-4b2e-aedd-d3944427b90d",
+  "path": "claude-handoff",
+  "path_key": "claude-handoff",
+  "enabled": true,
+  "tags": [
+    "mattpocock"
+  ],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/vinvcn/mattpocock-skills-zh-CN",
+    "subpath": "skills\\in-progress\\claude-handoff",
+    "branch": null
+  }
+}

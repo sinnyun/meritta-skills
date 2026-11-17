@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "skill_id": "9e5b87ed-ee57-4723-ae49-2071574c5e8b",
+  "path": "writing-shape",
+  "path_key": "writing-shape",
+  "enabled": true,
+  "tags": [
+    "mattpocock"
+  ],
+  "source": {
+    "type": "git",
+    "ref": "https://github.com/vinvcn/mattpocock-skills-zh-CN",
+    "subpath": "skills\\in-progress\\writing-shape",
+    "branch": null
+  }
+}
