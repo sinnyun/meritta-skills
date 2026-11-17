@@ -4,7 +4,9 @@
   "path": "codeartsagent-doc-guide",
   "path_key": "codeartsagent-doc-guide",
   "enabled": true,
-  "tags": [],
+  "tags": [
+    "codearts"
+  ],
   "source": {
     "type": "import",
     "ref": null,
