@@ -5,6 +5,7 @@
   "path_key": "browser-testing-with-devtools",
   "enabled": true,
   "tags": [
+    "addyOsmani",
     "agent-skills"
   ],
   "source": {

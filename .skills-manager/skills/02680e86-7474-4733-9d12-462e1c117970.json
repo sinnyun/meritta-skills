@@ -5,6 +5,7 @@
   "path_key": "ci-cd-and-automation",
   "enabled": true,
   "tags": [
+    "addyOsmani",
     "agent-skills"
   ],
   "source": {

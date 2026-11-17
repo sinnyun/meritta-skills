@@ -5,6 +5,7 @@
   "path_key": "security-and-hardening",
   "enabled": true,
   "tags": [
+    "addyOsmani",
     "agent-skills"
   ],
   "source": {

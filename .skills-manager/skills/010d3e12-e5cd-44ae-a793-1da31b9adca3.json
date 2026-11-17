@@ -5,6 +5,7 @@
   "path_key": "observability-and-instrumentation",
   "enabled": true,
   "tags": [
+    "addyOsmani",
     "agent-skills"
   ],
   "source": {
