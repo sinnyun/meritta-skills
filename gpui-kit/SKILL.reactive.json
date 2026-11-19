@@ -1,0 +1,14 @@
+{
+  "description": "How to build desktop applications with GPUI Kit, the Rust framework published as the gpui-kit crate (GPUI plus gpui_kit::component, gpui_kit::base, gpui_kit::assets). Use when setting up a gpui-kit app, choosing or using a component (Button, Input, Select, Dialog, Sheet, Tabs, Sidebar, List, DataTable, Tree, Chart, etc.), handling component state, theming, or window overlays, and for GPUI…",
+  "keywords": [
+    "gpui",
+    "kit",
+    "gpui kit"
+  ],
+  "keywords_zh": [
+    "gpui",
+    "kit",
+    "gpui kit"
+  ],
+  "generated": true
+}

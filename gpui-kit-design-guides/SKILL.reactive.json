@@ -1,0 +1,16 @@
+{
+  "description": "The normative Design Guides for GPUI Kit desktop applications. Read in full before designing or changing any screen, layout, spacing, visual hierarchy, color, density, component choice, interaction state, overlay, motion, data-heavy view, or interface copy in a GPUI Kit (gpui-kit / gpui-component) application, and before reviewing UI work for design quality. Also use when asked what the design…",
+  "keywords": [
+    "gpui",
+    "kit",
+    "guides",
+    "gpui kit design guides"
+  ],
+  "keywords_zh": [
+    "gpui",
+    "kit",
+    "guides",
+    "gpui kit design guides"
+  ],
+  "generated": true
+}
