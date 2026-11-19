@@ -9,6 +9,7 @@
     "codex": true,
     "deepseek_harness": true,
     "qoder_cn": true,
-    "workbuddy": true
+    "workbuddy": true,
+    "zcode": true
   }
 }
