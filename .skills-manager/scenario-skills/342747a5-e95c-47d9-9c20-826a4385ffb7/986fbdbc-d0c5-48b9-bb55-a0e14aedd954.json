@@ -4,10 +4,12 @@
   "skill_id": "986fbdbc-d0c5-48b9-bb55-a0e14aedd954",
   "sort_order": 0,
   "tools": {
+    "claude_code": true,
     "codearts_huawei": true,
     "codex": true,
     "deepseek_harness": true,
     "qoder_cn": true,
-    "workbuddy": true
+    "workbuddy": true,
+    "zcode": true
   }
 }
